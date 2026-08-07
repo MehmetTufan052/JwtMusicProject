@@ -1,5 +1,6 @@
 ﻿using JwtMusicNight.WebApi.Dtos;
 using JwtMusicNight.WebApi.Services.ArtistServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,12 +17,13 @@ namespace JwtMusicNight.WebApi.Controllers
             _artistService = artistService;
         }
         [HttpGet]
+        [Authorize(Roles ="Gold")]
         public async Task<IActionResult> ArtistList()
         {
             var values = await _artistService.GetAllArtistsAsync();
             return Ok(values);
         }
-
+         
         [HttpPost]
         public async Task<IActionResult> CreateArtist(CreateArtistDto createArtistDto)
         {
