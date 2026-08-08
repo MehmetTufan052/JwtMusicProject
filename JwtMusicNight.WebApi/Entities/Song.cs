@@ -16,12 +16,22 @@
 
         public DateTime ReleaseDate { get; set; }
 
-        public bool IsPremiumOnly { get; set; }
-
         public string Lyrics { get; set; }
+
 
         public int ArtistId { get; set; }
 
         public Artist Artist { get; set; }
+        
+
+        public int GenreId { get; set; }
+
+        public Genre Genre { get; set; }
+
+
+        public int PackageId { get; set; }
+
+        public Package Package { get; set; }
+
     }
 }
