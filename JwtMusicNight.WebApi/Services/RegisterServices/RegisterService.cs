@@ -21,7 +21,8 @@ namespace JwtMusicNight.WebApi.Services.RegisterServices
                 Email = dto.Email,
                 Name = dto.Name,
                 Surname = dto.Surname,
-                UserName = dto.Username
+                UserName = dto.Username,
+                PackageId = 1
             };
 
             var result = await _userManager.CreateAsync(appUser, dto.Password);

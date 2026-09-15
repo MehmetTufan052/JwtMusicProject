@@ -13,6 +13,8 @@ namespace JwtMusicNight.WebApi.Mapping
 
             CreateMap<Artist, ResultArtistDto>().ReverseMap();
             CreateMap<Artist, CreateArtistDto>().ReverseMap();
+
+            CreateMap<Genre, ResultGenreDto>().ReverseMap();
         }
     }
 }

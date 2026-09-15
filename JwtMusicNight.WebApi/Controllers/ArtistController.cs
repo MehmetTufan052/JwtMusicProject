@@ -17,7 +17,7 @@ namespace JwtMusicNight.WebApi.Controllers
             _artistService = artistService;
         }
         [HttpGet]
-        [Authorize(Roles ="Gold")]
+        [Authorize]
         public async Task<IActionResult> ArtistList()
         {
             var values = await _artistService.GetAllArtistsAsync();

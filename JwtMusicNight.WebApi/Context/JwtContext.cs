@@ -10,7 +10,29 @@ namespace JwtMusicNight.WebApi.Context
         {
             optionsBuilder.UseSqlServer("Server=DESKTOP-MO1FN9D\\SQL2019;initial catalog=JwtMusicNightDb;integrated security=true");
         }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            // Paket silinince sarkilar silinmesin
+            builder.Entity<Song>()
+                .HasOne(s => s.Package)
+                .WithMany(p => p.Songs)
+                .HasForeignKey(s => s.PackageId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Paket silinince kullanicilar silinmesin
+            builder.Entity<AppUser>()
+                .HasOne(u => u.Package)
+                .WithMany(p => p.Users)
+                .HasForeignKey(u => u.PackageId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
         public DbSet<Artist> Artists { get; set; }
         public DbSet<Song> Songs { get; set; }
+        public DbSet<Package> Packages { get; set; }
+        public DbSet<Genre> Genres { get; set; }
+        public DbSet<ListeningHistory> ListeningHistories { get; set; }
     }
 } 

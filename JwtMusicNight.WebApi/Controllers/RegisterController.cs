@@ -21,7 +21,13 @@ namespace JwtMusicNight.WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateUser(RegisterDto registerDto)
         {
-            await _registerService.RegisterAsync(registerDto);
+            var result = await _registerService.RegisterAsync(registerDto);
+
+            if (!result)
+            {
+                return BadRequest("Kayit basarisiz. Kullanici adi alinmis olabilir veya sifre kurallara uymuyor.");
+            }
+
             return Ok("Başarılı!");
         }
     }

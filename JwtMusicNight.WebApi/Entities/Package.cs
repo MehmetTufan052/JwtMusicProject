@@ -8,7 +8,6 @@
 
         public int Level { get; set; }
 
-
         public List<Song> Songs { get; set; }
 
         public List<AppUser> Users { get; set; }

@@ -33,5 +33,7 @@
 
         public Package Package { get; set; }
 
+        public List<ListeningHistory> ListeningHistories { get; set; }
+
     }
 }
