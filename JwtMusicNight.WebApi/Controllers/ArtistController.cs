@@ -30,5 +30,19 @@ namespace JwtMusicNight.WebApi.Controllers
             await _artistService.CreateArtistAsync(createArtistDto);
             return Ok("Başarılı!");
         }
+        
+        [HttpGet("{id}")]
+        [Authorize]
+        public async Task<IActionResult> GetArtist(int id)
+        {
+            var value = await _artistService.GetArtistByIdAsync(id);
+
+            if (value == null)
+            {
+                return NotFound("Sanatci bulunamadi.");
+            }
+
+            return Ok(value);
+        }
     }
 }

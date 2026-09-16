@@ -1,0 +1,1288 @@
+@model List<JwtMusicNight.WebUI.Dtos.ResultArtistDto>
+@{
+    Layout = null;
+    ViewData["Title"] = "Sanatçılar – Echoa";
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --bg: #000000;
+            --panel: #121212;
+            --panel-2: #181818;
+            --panel-3: #232323;
+            --line: rgba(255,255,255,.09);
+            --txt: #ffffff;
+            --txt-2: #b3b3b3;
+            --txt-3: #6a6a6a;
+            --accent: #a855f7;
+            --accent-2: #ec4899;
+            --ok: #1ed760;
+            --player-h: 76px;
+            --rail-w: 232px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--txt);
+            font-family: 'Figtree', system-ui, sans-serif;
+            overflow: hidden;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .shell {
+            display: grid;
+            grid-template-columns: var(--rail-w) 1fr;
+            grid-template-rows: 1fr var(--player-h);
+            height: 100vh;
+            gap: 8px;
+            padding: 8px;
+        }
+
+        /* ---------- RAIL ---------- */
+        .rail {
+            grid-row: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 0;
+        }
+
+        .rail-box {
+            background: var(--panel);
+            border-radius: 10px;
+            padding: 16px 12px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 8px 14px;
+            font-weight: 800;
+            font-size: 1.18rem;
+            letter-spacing: -.5px;
+        }
+
+        .brand-dot {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            display: grid;
+            place-items: center;
+            font-size: .85rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 9px 10px;
+            border-radius: 6px;
+            color: var(--txt-2);
+            font-weight: 600;
+            font-size: .92rem;
+            transition: color .18s, background .18s;
+        }
+
+            .nav-item i {
+                font-size: 1.22rem;
+            }
+
+            .nav-item:hover {
+                color: var(--txt);
+            }
+
+            .nav-item.on {
+                color: var(--txt);
+                background: var(--panel-3);
+            }
+
+        .rail-scroll {
+            background: var(--panel);
+            border-radius: 10px;
+            padding: 14px 12px;
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+        }
+
+        .rail-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--txt-2);
+            font-weight: 700;
+            font-size: .86rem;
+            padding: 0 8px 12px;
+        }
+
+        .lib-row {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 7px 8px;
+            border-radius: 6px;
+            transition: background .18s;
+        }
+
+            .lib-row:hover {
+                background: var(--panel-2);
+            }
+
+        .lib-thumb {
+            width: 42px;
+            height: 42px;
+            border-radius: 6px;
+            object-fit: cover;
+            flex-shrink: 0;
+            background: var(--panel-3);
+        }
+
+        .lib-name {
+            font-size: .88rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .lib-sub {
+            font-size: .76rem;
+            color: var(--txt-3);
+        }
+
+        /* ---------- MAIN ---------- */
+        .main {
+            grid-row: 1;
+            background: var(--panel);
+            border-radius: 10px;
+            overflow-y: auto;
+            min-height: 0;
+            position: relative;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 24px;
+            background: rgba(18,18,18,.82);
+            backdrop-filter: blur(18px);
+            border-bottom: 1px solid transparent;
+        }
+
+            .topbar.stuck {
+                border-bottom-color: var(--line);
+            }
+
+        .circle-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(0,0,0,.55);
+            color: var(--txt-2);
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+            .circle-btn:hover {
+                color: var(--txt);
+            }
+
+        .search {
+            position: relative;
+            flex: 1;
+            max-width: 380px;
+        }
+
+            .search i {
+                position: absolute;
+                left: 13px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--txt-3);
+                font-size: 1rem;
+            }
+
+            .search input {
+                width: 100%;
+                height: 38px;
+                border-radius: 50px;
+                border: 1px solid var(--line);
+                background: var(--panel-2);
+                color: var(--txt);
+                padding: 0 16px 0 38px;
+                font-family: inherit;
+                font-size: .89rem;
+                outline: none;
+            }
+
+                .search input::placeholder {
+                    color: var(--txt-3);
+                }
+
+                .search input:focus {
+                    border-color: rgba(255,255,255,.28);
+                }
+
+        .spacer {
+            flex: 1;
+        }
+
+        .pkg-pill {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            height: 32px;
+            padding: 0 14px;
+            border-radius: 50px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            font-size: .8rem;
+            font-weight: 700;
+        }
+
+        .avatar-pill {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--panel-3);
+            display: grid;
+            place-items: center;
+            font-size: .95rem;
+            color: var(--txt-2);
+        }
+
+        /* ---------- HERO ---------- */
+        .hero {
+            padding: 26px 24px 30px;
+            background: linear-gradient(170deg, rgba(168,85,247,.32) 0%, rgba(236,72,153,.12) 42%, transparent 88%);
+        }
+
+        .hero-kicker {
+            font-size: .76rem;
+            font-weight: 700;
+            letter-spacing: 1.6px;
+            text-transform: uppercase;
+            color: var(--txt-2);
+            margin-bottom: 10px;
+        }
+
+        .hero-title {
+            font-size: clamp(2.4rem, 6vw, 4.2rem);
+            font-weight: 800;
+            letter-spacing: -2.5px;
+            line-height: 1.02;
+        }
+
+        .hero-meta {
+            margin-top: 14px;
+            font-size: .9rem;
+            color: var(--txt-2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dot-sep {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--txt-3);
+        }
+
+        /* ---------- SECTIONS ---------- */
+        .sec {
+            padding: 6px 24px 30px;
+        }
+
+        .sec-head {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .sec-title {
+            font-size: 1.45rem;
+            font-weight: 800;
+            letter-spacing: -.7px;
+        }
+
+        .sec-link {
+            font-size: .78rem;
+            font-weight: 700;
+            letter-spacing: .6px;
+            text-transform: uppercase;
+            color: var(--txt-2);
+        }
+
+            .sec-link:hover {
+                color: var(--txt);
+            }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 22px;
+        }
+
+        .chip {
+            height: 32px;
+            padding: 0 15px;
+            border-radius: 50px;
+            border: none;
+            background: var(--panel-3);
+            color: var(--txt);
+            font-family: inherit;
+            font-size: .83rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .18s, color .18s;
+        }
+
+            .chip:hover {
+                background: #2f2f2f;
+            }
+
+            .chip.on {
+                background: var(--txt);
+                color: #000;
+            }
+
+        /* ---------- CIRCLE ROW ---------- */
+        .circle-row {
+            display: grid;
+            grid-auto-flow: column;
+            grid-auto-columns: 132px;
+            gap: 18px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            scrollbar-width: none;
+        }
+
+            .circle-row::-webkit-scrollbar {
+                display: none;
+            }
+
+        .circle-card {
+            text-align: center;
+        }
+
+        .circle-img-wrap {
+            position: relative;
+            width: 132px;
+            height: 132px;
+            margin-bottom: 12px;
+        }
+
+        .circle-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--panel-3);
+        }
+
+        .circle-fallback {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 2.6rem;
+            font-weight: 800;
+            color: rgba(255,255,255,.92);
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        }
+
+        .circle-name {
+            font-size: .92rem;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .circle-sub {
+            font-size: .78rem;
+            color: var(--txt-3);
+            margin-top: 2px;
+        }
+
+        /* ---------- GRID ---------- */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+            gap: 10px;
+        }
+
+        .card {
+            display: block;
+            background: transparent;
+            border-radius: 8px;
+            padding: 13px;
+            transition: background .22s;
+            position: relative;
+        }
+
+            .card:hover {
+                background: var(--panel-2);
+            }
+
+        .card-art {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-bottom: 14px;
+            background: var(--panel-3);
+        }
+
+        .card-art img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .card-art .circle-fallback {
+            border-radius: 0;
+        }
+
+        .play-fab {
+            position: absolute;
+            right: 8px;
+            bottom: 8px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: var(--ok);
+            color: #000;
+            font-size: 1.25rem;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity .22s, transform .22s;
+            box-shadow: 0 8px 18px rgba(0,0,0,.5);
+        }
+
+        .card:hover .play-fab {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .card-name {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: .95rem;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+            .card-name span {
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .card-name .bi-patch-check-fill {
+                color: #3d9df3;
+                font-size: .82rem;
+                flex-shrink: 0;
+            }
+
+        .card-sub {
+            margin-top: 5px;
+            font-size: .82rem;
+            color: var(--txt-3);
+        }
+
+        .empty {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--txt-3);
+        }
+
+            .empty i {
+                font-size: 2.4rem;
+                display: block;
+                margin-bottom: 12px;
+            }
+
+        /* ---------- PLAYER ---------- */
+        .player {
+            grid-column: 1 / -1;
+            grid-row: 2;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 0 16px;
+        }
+
+        .np {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 260px;
+            min-width: 0;
+        }
+
+        .np-art {
+            width: 54px;
+            height: 54px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            display: grid;
+            place-items: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .np-name {
+            font-size: .88rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .np-sub {
+            font-size: .76rem;
+            color: var(--txt-3);
+        }
+
+        .pl-center {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pl-btns {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+            .pl-btns button {
+                border: none;
+                background: transparent;
+                color: var(--txt-2);
+                font-size: 1.05rem;
+                cursor: pointer;
+            }
+
+                .pl-btns button:hover {
+                    color: var(--txt);
+                }
+
+        .pl-play {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--txt) !important;
+            color: #000 !important;
+            display: grid;
+            place-items: center;
+            font-size: 1.1rem !important;
+        }
+
+        .pl-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 520px;
+            font-size: .7rem;
+            color: var(--txt-3);
+        }
+
+        .track {
+            flex: 1;
+            height: 4px;
+            border-radius: 4px;
+            background: #4d4d4d;
+            overflow: hidden;
+        }
+
+        .track-fill {
+            height: 100%;
+            width: 0;
+            background: var(--txt);
+        }
+
+        .pl-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 200px;
+            justify-content: flex-end;
+            color: var(--txt-2);
+            font-size: 1rem;
+        }
+
+        .vol {
+            width: 92px;
+            height: 4px;
+            border-radius: 4px;
+            background: #4d4d4d;
+        }
+
+        .vol-fill {
+            height: 100%;
+            width: 68%;
+            border-radius: 4px;
+            background: var(--txt);
+        }
+
+        /* ---------- EFFECTS ---------- */
+        @@keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(22px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @@keyframes floatOrb {
+            0%, 100% {
+                transform: translate(0,0) scale(1);
+            }
+
+            50% {
+                transform: translate(38px,-26px) scale(1.14);
+            }
+        }
+
+        @@keyframes spinRing {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @@keyframes eqBar {
+            0%, 100% {
+                height: 22%;
+            }
+
+            50% {
+                height: 100%;
+            }
+        }
+
+        @@keyframes ripple {
+            from {
+                opacity: .55;
+                transform: scale(.6);
+            }
+
+            to {
+                opacity: 0;
+                transform: scale(2.3);
+            }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(26px);
+            transition: opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1);
+        }
+
+            .reveal.in {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+        .hero {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(70px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .orb-a {
+            width: 340px;
+            height: 340px;
+            top: -140px;
+            left: -60px;
+            background: rgba(168,85,247,.45);
+            animation: floatOrb 17s ease-in-out infinite;
+        }
+
+        .orb-b {
+            width: 280px;
+            height: 280px;
+            top: -60px;
+            left: 46%;
+            background: rgba(236,72,153,.3);
+            animation: floatOrb 21s ease-in-out infinite reverse;
+        }
+
+        .hero > *:not(.orb) {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-kicker, .hero-title, .hero-meta {
+            animation: fadeUp .8s cubic-bezier(.22,1,.36,1) both;
+        }
+
+        .hero-title {
+            animation-delay: .07s;
+        }
+
+        .hero-meta {
+            animation-delay: .15s;
+        }
+
+        .card {
+            animation: fadeUp .6s cubic-bezier(.22,1,.36,1) both;
+            transition: background .22s, transform .3s cubic-bezier(.22,1,.36,1);
+        }
+
+            .card:hover {
+                transform: translateY(-6px);
+            }
+
+        .card-art img, .card-art .circle-fallback {
+            transition: transform .55s cubic-bezier(.22,1,.36,1), filter .35s;
+        }
+
+        .card:hover .card-art img, .card:hover .card-art .circle-fallback {
+            transform: scale(1.09);
+            filter: brightness(.78);
+        }
+
+        .card-art::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            box-shadow: 0 0 0 0 rgba(168,85,247,0), 0 14px 34px rgba(0,0,0,0);
+            transition: box-shadow .35s;
+            pointer-events: none;
+        }
+
+        .card:hover .card-art::after {
+            box-shadow: 0 0 0 3px rgba(168,85,247,.55), 0 16px 38px rgba(0,0,0,.55);
+        }
+
+        .play-fab {
+            transition: opacity .22s, transform .3s cubic-bezier(.34,1.56,.64,1), background .2s;
+        }
+
+            .play-fab:hover {
+                transform: translateY(0) scale(1.13);
+                background: #25e96b;
+            }
+
+            .play-fab:active {
+                transform: translateY(0) scale(.94);
+            }
+
+        .fab-ripple {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: var(--ok);
+            animation: ripple .55s ease-out forwards;
+            pointer-events: none;
+        }
+
+        .circle-img-wrap::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, var(--accent), var(--accent-2), var(--ok), var(--accent));
+            opacity: 0;
+            transition: opacity .3s;
+        }
+
+        .circle-card:hover .circle-img-wrap::before {
+            opacity: 1;
+            animation: spinRing 3.4s linear infinite;
+        }
+
+        .circle-img, .circle-fallback {
+            position: relative;
+            transition: transform .4s cubic-bezier(.22,1,.36,1);
+        }
+
+        .circle-card:hover .circle-img, .circle-card:hover .circle-fallback {
+            transform: scale(.96);
+        }
+
+        .circle-card {
+            transition: transform .3s cubic-bezier(.22,1,.36,1);
+        }
+
+            .circle-card:hover {
+                transform: translateY(-5px);
+            }
+
+        .nav-item {
+            position: relative;
+        }
+
+            .nav-item::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 50%;
+                width: 3px;
+                height: 0;
+                border-radius: 3px;
+                background: linear-gradient(var(--accent), var(--accent-2));
+                transform: translateY(-50%);
+                transition: height .28s cubic-bezier(.22,1,.36,1);
+            }
+
+            .nav-item.on::before, .nav-item:hover::before {
+                height: 62%;
+            }
+
+        .chip {
+            transition: background .18s, color .18s, transform .18s;
+        }
+
+            .chip:active {
+                transform: scale(.94);
+            }
+
+        .lib-row {
+            transition: background .18s, transform .22s;
+        }
+
+            .lib-row:hover {
+                transform: translateX(4px);
+            }
+
+        .pkg-pill {
+            background-size: 180% 180%;
+            transition: transform .25s;
+        }
+
+            .pkg-pill:hover {
+                transform: translateY(-1px) scale(1.04);
+            }
+
+        .eq {
+            display: none;
+            align-items: flex-end;
+            gap: 2px;
+            width: 20px;
+            height: 16px;
+        }
+
+            .eq.on {
+                display: flex;
+            }
+
+            .eq span {
+                flex: 1;
+                background: var(--ok);
+                border-radius: 1px;
+                animation: eqBar .85s ease-in-out infinite;
+            }
+
+                .eq span:nth-child(2) {
+                    animation-delay: .18s;
+                }
+
+                .eq span:nth-child(3) {
+                    animation-delay: .36s;
+                }
+
+                .eq span:nth-child(4) {
+                    animation-delay: .54s;
+                }
+
+        .np-art {
+            transition: transform .4s cubic-bezier(.22,1,.36,1);
+        }
+
+            .np-art.spin {
+                animation: spinRing 6s linear infinite;
+            }
+
+        .track {
+            cursor: pointer;
+        }
+
+        .track-fill {
+            transition: width .2s linear;
+        }
+
+        .pl-play {
+            transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+        }
+
+            .pl-play:hover {
+                transform: scale(1.12);
+            }
+
+        @@media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 11px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4a4a4a;
+            border-radius: 6px;
+            border: 3px solid transparent;
+            background-clip: content-box;
+        }
+
+        @@media (max-width: 1000px) {
+            .shell {
+                grid-template-columns: 1fr;
+            }
+
+            .rail {
+                display: none;
+            }
+
+            .np, .pl-right {
+                width: auto;
+            }
+
+            .pl-right {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+
+        <aside class="rail">
+            <div class="rail-box">
+                <div class="brand">
+                    <div class="brand-dot"><i class="bi bi-broadcast"></i></div>
+                    ECHOA
+                </div>
+                <a class="nav-item" href="/Home/Index"><i class="bi bi-house-door"></i>Ana sayfa</a>
+                <a class="nav-item on" href="/Artist/ArtistListV2"><i class="bi bi-person-badge"></i>Sanatçılar</a>
+                <a class="nav-item" href="/Genre/GenreList"><i class="bi bi-collection"></i>Türler</a>
+                <a class="nav-item" href="/Song/SongList"><i class="bi bi-music-note-list"></i>Şarkılar</a>
+            </div>
+
+            <div class="rail-scroll">
+                <div class="rail-head">
+                    <span><i class="bi bi-stack"></i>&nbsp; Kitaplığın</span>
+                    <i class="bi bi-arrow-right"></i>
+                </div>
+                @foreach (var lib in Model.Take(6))
+                {
+                    <a class="lib-row" href="/Song/SongsByArtist/@lib.ArtistId">
+                        <img class="lib-thumb" src="@lib.ArtistImageUrl" alt="" onerror="this.style.visibility='hidden'" />
+                        <div style="min-width:0">
+                            <div class="lib-name">@lib.ArtistName</div>
+                            <div class="lib-sub">Sanatçı</div>
+                        </div>
+                    </a>
+                }
+            </div>
+        </aside>
+
+        <main class="main" id="main">
+
+            <div class="topbar" id="topbar">
+                <button class="circle-btn" aria-label="Geri"><i class="bi bi-chevron-left"></i></button>
+                <button class="circle-btn" aria-label="İleri"><i class="bi bi-chevron-right"></i></button>
+                <div class="search">
+                    <i class="bi bi-search"></i>
+                    <input id="q" type="text" placeholder="Sanatçı ara" autocomplete="off" />
+                </div>
+                <div class="spacer"></div>
+                @if (ViewBag.PackageName != null)
+                {
+                    <div class="pkg-pill"><i class="bi bi-gem"></i>@ViewBag.PackageName</div>
+                }
+                <div class="avatar-pill"><i class="bi bi-person-fill"></i></div>
+            </div>
+
+            <section class="hero">
+                <div class="orb orb-a"></div>
+                <div class="orb orb-b"></div>
+                <div class="hero-kicker">Keşfet</div>
+                <h1 class="hero-title">Sanatçılar</h1>
+                <div class="hero-meta">
+                    <span>@Model.Count sanatçı</span>
+                    <span class="dot-sep"></span>
+                    <span>@Model.Count(a => a.IsVerified) onaylı hesap</span>
+                    <span class="dot-sep"></span>
+                    <span>@Model.Select(a => a.Country).Distinct().Count() ülke</span>
+                </div>
+            </section>
+
+            <section class="sec reveal">
+                <div class="sec-head">
+                    <h2 class="sec-title">Öne çıkanlar</h2>
+                    <span class="sec-link">Tümü</span>
+                </div>
+                <div class="circle-row">
+                    @foreach (var a in Model.Where(x => x.IsVerified).Take(8))
+                    {
+                        <a class="circle-card" href="/Song/SongsByArtist/@a.ArtistId">
+                            <div class="circle-img-wrap">
+                                <img class="circle-img" src="@a.ArtistImageUrl" alt="@a.ArtistName"
+                                     onerror="this.outerHTML='<div class=\'circle-fallback\'>@(a.ArtistName.Substring(0,1))</div>'" />
+                            </div>
+                            <div class="circle-name">@a.ArtistName</div>
+                            <div class="circle-sub">@a.Country</div>
+                        </a>
+                    }
+                </div>
+            </section>
+
+            <section class="sec reveal">
+                <div class="sec-head">
+                    <h2 class="sec-title">Tüm sanatçılar</h2>
+                </div>
+
+                <div class="chips" id="chips">
+                    <button class="chip on" data-c="all">Tümü</button>
+                    @foreach (var c in Model.Select(x => x.Country).Where(x => x != null).Distinct().OrderBy(x => x))
+                    {
+                        <button class="chip" data-c="@c.ToLower()">@c</button>
+                    }
+                </div>
+
+                <div class="grid" id="grid">
+                    @for (int i = 0; i < Model.Count; i++)
+                    {
+                        var a = Model[i];
+                        <a class="card" href="/Song/SongsByArtist/@a.ArtistId"
+                           style="animation-delay:@(i * 55)ms"
+                           data-name="@a.ArtistName.ToLower()" data-c="@(a.Country == null ? "" : a.Country.ToLower())">
+                            <div class="card-art">
+                                <img src="@a.ArtistImageUrl" alt="@a.ArtistName"
+                                     onerror="this.outerHTML='<div class=\'circle-fallback\'>@(a.ArtistName.Substring(0,1))</div>'" />
+                                <button class="play-fab" aria-label="@a.ArtistName şarkılarını çal"><i class="bi bi-play-fill"></i></button>
+                            </div>
+                            <div class="card-name">
+                                <span>@a.ArtistName</span>
+                                @if (a.IsVerified)
+                                {
+                                    <i class="bi bi-patch-check-fill" title="Onaylı sanatçı"></i>
+                                }
+                            </div>
+                            <div class="card-sub">@a.Country</div>
+                        </a>
+                    }
+                    <div class="empty" id="empty" style="display:none">
+                        <i class="bi bi-search"></i>
+                        Aramanla eşleşen sanatçı yok.
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <div class="player">
+            <div class="np">
+                <div class="np-art" id="npArt"><i class="bi bi-music-note-beamed"></i></div>
+                <div style="min-width:0">
+                    <div class="np-name" id="npName">Bir şarkı seç</div>
+                    <div class="np-sub" style="display:flex;align-items:center;gap:8px">
+                        <span id="npSub">Çalan bir şey yok</span>
+                        <span class="eq" id="eq"><span></span><span></span><span></span><span></span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="pl-center">
+                <div class="pl-btns">
+                    <button aria-label="Karıştır"><i class="bi bi-shuffle"></i></button>
+                    <button aria-label="Önceki"><i class="bi bi-skip-start-fill"></i></button>
+                    <button class="pl-play" id="plPlay" aria-label="Çal"><i class="bi bi-play-fill" id="plIcon"></i></button>
+                    <button aria-label="Sonraki"><i class="bi bi-skip-end-fill"></i></button>
+                    <button aria-label="Tekrarla"><i class="bi bi-repeat"></i></button>
+                </div>
+                <div class="pl-bar">
+                    <span id="tCur">0:00</span>
+                    <div class="track" id="track"><div class="track-fill" id="trackFill"></div></div>
+                    <span id="tEnd">3:20</span>
+                </div>
+            </div>
+            <div class="pl-right">
+                <i class="bi bi-volume-up"></i>
+                <div class="vol"><div class="vol-fill"></div></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        var main = document.getElementById('main');
+        var topbar = document.getElementById('topbar');
+        main.addEventListener('scroll', function () {
+            topbar.classList.toggle('stuck', main.scrollTop > 8);
+        });
+
+        var cards = Array.prototype.slice.call(document.querySelectorAll('#grid .card'));
+        var empty = document.getElementById('empty');
+        var q = document.getElementById('q');
+        var country = 'all';
+
+        function apply() {
+            var text = q.value.trim().toLowerCase();
+            var shown = 0;
+            cards.forEach(function (c) {
+                var okText = text === '' || c.dataset.name.indexOf(text) > -1;
+                var okCountry = country === 'all' || c.dataset.c === country;
+                var show = okText && okCountry;
+                c.style.display = show ? '' : 'none';
+                if (show) { shown++; }
+            });
+            empty.style.display = shown === 0 ? 'block' : 'none';
+        }
+
+        q.addEventListener('input', apply);
+
+        document.getElementById('chips').addEventListener('click', function (e) {
+            var btn = e.target.closest('.chip');
+            if (!btn) { return; }
+            document.querySelectorAll('#chips .chip').forEach(function (b) { b.classList.remove('on'); });
+            btn.classList.add('on');
+            country = btn.dataset.c;
+            apply();
+        });
+
+        var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (en) {
+                if (en.isIntersecting) {
+                    en.target.classList.add('in');
+                    io.unobserve(en.target);
+                }
+            });
+        }, { root: main, threshold: 0.08 });
+
+        document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+
+        var eq = document.getElementById('eq');
+        var npArt = document.getElementById('npArt');
+        var npName = document.getElementById('npName');
+        var npSub = document.getElementById('npSub');
+        var plPlay = document.getElementById('plPlay');
+        var plIcon = document.getElementById('plIcon');
+        var trackFill = document.getElementById('trackFill');
+        var tCur = document.getElementById('tCur');
+
+        var playing = false;
+        var seconds = 0;
+        var total = 200;
+        var timer = null;
+
+        function fmt(s) {
+            var m = Math.floor(s / 60);
+            var r = Math.floor(s % 60);
+            return m + ':' + (r < 10 ? '0' + r : r);
+        }
+
+        function render() {
+            trackFill.style.width = Math.round((seconds / total) * 100) + '%';
+            tCur.textContent = fmt(seconds);
+        }
+
+        function setPlaying(on) {
+            playing = on;
+            eq.classList.toggle('on', on);
+            npArt.classList.toggle('spin', on);
+            plIcon.className = on ? 'bi bi-pause-fill' : 'bi bi-play-fill';
+            plPlay.setAttribute('aria-label', on ? 'Duraklat' : 'Çal');
+            clearInterval(timer);
+            if (on) {
+                timer = setInterval(function () {
+                    seconds++;
+                    if (seconds >= total) { seconds = 0; }
+                    render();
+                }, 1000);
+            }
+        }
+
+        plPlay.addEventListener('click', function () { setPlaying(!playing); });
+
+        document.getElementById('track').addEventListener('click', function (e) {
+            var r = this.getBoundingClientRect();
+            seconds = Math.round(((e.clientX - r.left) / r.width) * total);
+            render();
+        });
+
+        document.querySelectorAll('.play-fab').forEach(function (b) {
+            b.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                var rip = document.createElement('span');
+                rip.className = 'fab-ripple';
+                b.appendChild(rip);
+                setTimeout(function () { rip.remove(); }, 560);
+
+                var card = b.closest('.card');
+                npName.textContent = card.querySelector('.card-name span').textContent;
+                npSub.textContent = card.querySelector('.card-sub').textContent;
+                seconds = 0;
+                render();
+                setPlaying(true);
+            });
+        });
+
+        render();
+    </script>
+</body>
+</html>

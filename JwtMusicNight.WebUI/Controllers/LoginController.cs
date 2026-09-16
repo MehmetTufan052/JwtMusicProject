@@ -26,15 +26,16 @@ namespace JwtMusicNight.WebUI.Controllers
             var client= _httpClientFactory.CreateClient();
             var jsonData=JsonConvert.SerializeObject(loginDto);
             StringContent stringContent=new StringContent(jsonData, Encoding.UTF8, "application/json");
-            var responseMessage=await client.PostAsync("http://localhost:5000/api/Auth/login", stringContent);
+            var responseMessage=await client.PostAsync("https://localhost:7292/api/Login", stringContent);
             if (responseMessage.IsSuccessStatusCode)
             {
                 var jsonResponse=await responseMessage.Content.ReadAsStringAsync();
                 var tokenModel=JsonConvert.DeserializeObject<TokenResponseDto>(jsonResponse);
                 HttpContext.Session.SetString("JwtToken", tokenModel.Token);
 
-                return RedirectToAction("ArtistList", "Artist");
+                return RedirectToAction("ArtistListV2", "Artist");
             }
+            ViewBag.ErrorMessage = "Yanlış kullanıcı adı veya şifre.";
             return View();
         }
     }

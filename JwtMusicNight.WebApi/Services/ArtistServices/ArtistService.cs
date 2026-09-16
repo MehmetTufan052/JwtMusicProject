@@ -29,5 +29,11 @@ namespace JwtMusicNight.WebApi.Services.ArtistServices
             var values = await _context.Artists.ToListAsync();
             return _mapper.Map<List<ResultArtistDto>>(values);
         }
+
+        public async Task<ResultArtistDto> GetArtistByIdAsync(int id)
+        {
+            var value = await _context.Artists.FirstOrDefaultAsync(x => x.ArtistId == id);
+            return _mapper.Map<ResultArtistDto>(value);
+        }
     }
 }

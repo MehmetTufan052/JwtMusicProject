@@ -20,6 +20,10 @@ namespace JwtMusicNight.WebApi.Controllers
         public async Task<IActionResult> UserLogin(LoginDto loginDto)
         {
             var token = await _loginService.LoginAsync(loginDto);
+            if(token == null)
+            {
+                return Unauthorized("Kullanıcı adı veya şifre hatalı.");
+            }
             return Ok(new { token });
         }
     }
