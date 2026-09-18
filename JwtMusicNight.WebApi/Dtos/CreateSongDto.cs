@@ -1,8 +1,7 @@
-﻿namespace JwtMusicNight.WebApi.Dtos
+namespace JwtMusicNight.WebApi.Dtos
 {
     public class CreateSongDto
     {
-
         public string SongName { get; set; }
 
         public string CoverImageUrl { get; set; }
@@ -15,10 +14,12 @@
 
         public DateTime ReleaseDate { get; set; }
 
-        public bool IsPremiumOnly { get; set; }
-
         public string Lyrics { get; set; }
 
         public int ArtistId { get; set; }
+
+        public int GenreId { get; set; }
+
+        public int PackageId { get; set; }
     }
 }

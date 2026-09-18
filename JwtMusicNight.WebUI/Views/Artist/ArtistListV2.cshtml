@@ -1028,7 +1028,7 @@
                 </div>
                 @foreach (var lib in Model.Take(6))
                 {
-                    <a class="lib-row" href="/Song/SongsByArtist/@lib.ArtistId">
+                    <a class="lib-row" href="/Artist/ArtistDetail/@lib.ArtistId">
                         <img class="lib-thumb" src="@lib.ArtistImageUrl" alt="" onerror="this.style.visibility='hidden'" />
                         <div style="min-width:0">
                             <div class="lib-name">@lib.ArtistName</div>
@@ -1078,7 +1078,7 @@
                 <div class="circle-row">
                     @foreach (var a in Model.Where(x => x.IsVerified).Take(8))
                     {
-                        <a class="circle-card" href="/Song/SongsByArtist/@a.ArtistId">
+                        <a class="circle-card" href="/Artist/ArtistDetail/@a.ArtistId">
                             <div class="circle-img-wrap">
                                 <img class="circle-img" src="@a.ArtistImageUrl" alt="@a.ArtistName"
                                      onerror="this.outerHTML='<div class=\'circle-fallback\'>@(a.ArtistName.Substring(0,1))</div>'" />
@@ -1107,7 +1107,7 @@
                     @for (int i = 0; i < Model.Count; i++)
                     {
                         var a = Model[i];
-                        <a class="card" href="/Song/SongsByArtist/@a.ArtistId"
+                        <a class="card" href="/Artist/ArtistDetail/@a.ArtistId"
                            style="animation-delay:@(i * 55)ms"
                            data-name="@a.ArtistName.ToLower()" data-c="@(a.Country == null ? "" : a.Country.ToLower())">
                             <div class="card-art">

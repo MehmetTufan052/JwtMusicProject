@@ -1,0 +1,1409 @@
+﻿@model JwtMusicNight.WebUI.Models.ArtistDetailViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = Model.Artist.ArtistName + " – Echoa";
+    var songs = Model.Songs;
+    var popular = songs.OrderByDescending(s => s.ListenCount).Take(5).ToList();
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --bg: #000;
+            --panel: #121212;
+            --panel-2: #181818;
+            --panel-3: #232323;
+            --line: rgba(255,255,255,.09);
+            --txt: #fff;
+            --txt-2: #b3b3b3;
+            --txt-3: #6a6a6a;
+            --accent: #a855f7;
+            --accent-2: #ec4899;
+            --ok: #1ed760;
+            --danger: #f43f5e;
+            --player-h: 76px;
+            --rail-w: 232px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--txt);
+            font-family: 'Figtree', system-ui, sans-serif;
+            overflow: hidden;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .shell {
+            display: grid;
+            grid-template-columns: var(--rail-w) 1fr;
+            grid-template-rows: 1fr var(--player-h);
+            height: 100vh;
+            gap: 8px;
+            padding: 8px;
+        }
+
+        .rail {
+            grid-row: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 0;
+        }
+
+        .rail-box {
+            background: var(--panel);
+            border-radius: 10px;
+            padding: 16px 12px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 8px 14px;
+            font-weight: 800;
+            font-size: 1.18rem;
+            letter-spacing: -.5px;
+        }
+
+        .brand-dot {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            display: grid;
+            place-items: center;
+            font-size: .85rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 9px 10px;
+            border-radius: 6px;
+            color: var(--txt-2);
+            font-weight: 600;
+            font-size: .92rem;
+            position: relative;
+            transition: color .18s, background .18s;
+        }
+
+            .nav-item i {
+                font-size: 1.22rem;
+            }
+
+            .nav-item:hover {
+                color: var(--txt);
+            }
+
+            .nav-item.on {
+                color: var(--txt);
+                background: var(--panel-3);
+            }
+
+            .nav-item::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 50%;
+                width: 3px;
+                height: 0;
+                border-radius: 3px;
+                background: linear-gradient(var(--accent), var(--accent-2));
+                transform: translateY(-50%);
+                transition: height .28s cubic-bezier(.22,1,.36,1);
+            }
+
+            .nav-item.on::before, .nav-item:hover::before {
+                height: 62%;
+            }
+
+        .rail-scroll {
+            background: var(--panel);
+            border-radius: 10px;
+            padding: 14px 12px;
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+        }
+
+        .rail-head {
+            color: var(--txt-2);
+            font-weight: 700;
+            font-size: .86rem;
+            padding: 0 8px 12px;
+        }
+
+        .bio {
+            font-size: .84rem;
+            color: var(--txt-3);
+            line-height: 1.65;
+            padding: 0 8px;
+        }
+
+        .fact {
+            display: flex;
+            justify-content: space-between;
+            padding: 9px 8px;
+            font-size: .84rem;
+            border-bottom: 1px solid var(--line);
+        }
+
+            .fact span:first-child {
+                color: var(--txt-3);
+            }
+
+            .fact span:last-child {
+                font-weight: 700;
+            }
+
+        .main {
+            grid-row: 1;
+            background: var(--panel);
+            border-radius: 10px;
+            overflow-y: auto;
+            min-height: 0;
+            position: relative;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 24px;
+            background: rgba(18,18,18,0);
+            backdrop-filter: blur(18px);
+            transition: background .3s;
+        }
+
+            .topbar.stuck {
+                background: rgba(18,18,18,.9);
+                border-bottom: 1px solid var(--line);
+            }
+
+            .topbar .t-name {
+                font-size: 1.1rem;
+                font-weight: 800;
+                opacity: 0;
+                transition: opacity .3s;
+            }
+
+            .topbar.stuck .t-name {
+                opacity: 1;
+            }
+
+        .circle-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(0,0,0,.55);
+            color: var(--txt-2);
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+            .circle-btn:hover {
+                color: var(--txt);
+            }
+
+        .spacer {
+            flex: 1;
+        }
+
+        .pkg-pill {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            height: 32px;
+            padding: 0 14px;
+            border-radius: 50px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            font-size: .8rem;
+            font-weight: 700;
+        }
+
+        /* ---------- HERO ---------- */
+        .hero {
+            position: relative;
+            margin-top: -62px;
+            padding: 82px 24px 26px;
+            display: flex;
+            align-items: flex-end;
+            gap: 26px;
+            overflow: hidden;
+            min-height: 320px;
+        }
+
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            background-size: cover;
+            background-position: center 30%;
+            filter: saturate(1.25);
+        }
+
+        .hero-veil {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background: linear-gradient(180deg, rgba(18,18,18,.42) 0%, rgba(18,18,18,.72) 55%, var(--panel) 100%), linear-gradient(90deg, rgba(168,85,247,.28), transparent 60%);
+        }
+
+        .hero > *:not(.hero-bg):not(.hero-veil) {
+            position: relative;
+            z-index: 2;
+        }
+
+        .ar-photo {
+            width: 208px;
+            height: 208px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            box-shadow: 0 26px 60px rgba(0,0,0,.6);
+            animation: pop .7s cubic-bezier(.22,1,.36,1) both;
+        }
+
+        .ar-fallback {
+            width: 208px;
+            height: 208px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            font-size: 5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            box-shadow: 0 26px 60px rgba(0,0,0,.6);
+            animation: pop .7s cubic-bezier(.22,1,.36,1) both;
+        }
+
+        .ar-meta {
+            min-width: 0;
+            padding-bottom: 6px;
+        }
+
+        .ar-kicker {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: .78rem;
+            font-weight: 800;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            color: var(--txt-2);
+            animation: fadeUp .7s .05s cubic-bezier(.22,1,.36,1) both;
+        }
+
+            .ar-kicker .bi-patch-check-fill {
+                color: #3d9df3;
+                font-size: 1rem;
+                letter-spacing: 0;
+            }
+
+        .ar-name {
+            font-size: clamp(2.6rem, 6.5vw, 5.2rem);
+            font-weight: 900;
+            letter-spacing: -3px;
+            line-height: 1;
+            margin: 10px 0 14px;
+            word-break: break-word;
+            animation: fadeUp .7s .1s cubic-bezier(.22,1,.36,1) both;
+        }
+
+        .ar-stats {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            font-size: .92rem;
+            color: var(--txt-2);
+            animation: fadeUp .7s .16s cubic-bezier(.22,1,.36,1) both;
+        }
+
+        .dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--txt-3);
+        }
+
+        /* ---------- TOOLBAR ---------- */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 22px 24px 8px;
+            background: var(--panel);
+        }
+
+        .big-play {
+            width: 58px;
+            height: 58px;
+            border: none;
+            border-radius: 50%;
+            background: var(--ok);
+            color: #000;
+            font-size: 1.7rem;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            transition: transform .25s cubic-bezier(.34,1.56,.64,1), background .2s;
+        }
+
+            .big-play:hover {
+                transform: scale(1.07);
+                background: #25e96b;
+            }
+
+            .big-play:active {
+                transform: scale(.95);
+            }
+
+        .ghost-btn {
+            height: 38px;
+            padding: 0 20px;
+            border-radius: 50px;
+            border: 1px solid var(--line);
+            background: transparent;
+            color: var(--txt);
+            font-family: inherit;
+            font-size: .88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+            .ghost-btn:hover {
+                border-color: rgba(255,255,255,.4);
+                transform: scale(1.03);
+            }
+
+            .ghost-btn.on {
+                background: var(--txt);
+                color: #000;
+                border-color: var(--txt);
+            }
+
+        .icon-btn {
+            border: none;
+            background: transparent;
+            color: var(--txt-3);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color .2s;
+        }
+
+            .icon-btn:hover {
+                color: var(--txt);
+            }
+
+        /* ---------- TABS ---------- */
+        .tabs {
+            display: flex;
+            gap: 6px;
+            padding: 14px 24px 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .tab {
+            border: none;
+            background: transparent;
+            color: var(--txt-3);
+            font-family: inherit;
+            font-size: .92rem;
+            font-weight: 700;
+            padding: 10px 14px;
+            cursor: pointer;
+            position: relative;
+            transition: color .2s;
+        }
+
+            .tab:hover {
+                color: var(--txt-2);
+            }
+
+            .tab.on {
+                color: var(--txt);
+            }
+
+                .tab.on::after {
+                    content: '';
+                    position: absolute;
+                    left: 14px;
+                    right: 14px;
+                    bottom: -1px;
+                    height: 2px;
+                    border-radius: 2px;
+                    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+                }
+
+        .pane {
+            display: none;
+            padding: 20px 24px 34px;
+        }
+
+            .pane.on {
+                display: block;
+            }
+
+        /* ---------- TRACK LIST ---------- */
+        .thead {
+            display: grid;
+            grid-template-columns: 38px 1fr 150px 110px 74px;
+            gap: 14px;
+            padding: 0 12px 10px;
+            font-size: .74rem;
+            font-weight: 700;
+            letter-spacing: 1.1px;
+            text-transform: uppercase;
+            color: var(--txt-3);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .trow {
+            display: grid;
+            grid-template-columns: 38px 1fr 150px 110px 74px;
+            gap: 14px;
+            align-items: center;
+            padding: 9px 12px;
+            border-radius: 7px;
+            transition: background .18s;
+            animation: fadeUp .5s cubic-bezier(.22,1,.36,1) both;
+        }
+
+            .trow:hover {
+                background: var(--panel-2);
+            }
+
+            .trow.locked {
+                opacity: .52;
+            }
+
+        .t-num {
+            color: var(--txt-3);
+            font-size: .92rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .trow:hover .t-num .n {
+            display: none;
+        }
+
+        .t-num .p {
+            display: none;
+            color: var(--txt);
+            font-size: 1.05rem;
+            cursor: pointer;
+        }
+
+        .trow:hover .t-num .p {
+            display: block;
+        }
+
+        .t-main {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            min-width: 0;
+        }
+
+        .t-art {
+            width: 42px;
+            height: 42px;
+            border-radius: 5px;
+            object-fit: cover;
+            background: var(--panel-3);
+            flex-shrink: 0;
+        }
+
+        .t-art-fb {
+            width: 42px;
+            height: 42px;
+            border-radius: 5px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            font-size: 1rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        }
+
+        .t-title {
+            font-size: .95rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+            .t-title .bi-lock-fill {
+                color: var(--txt-3);
+                font-size: .8rem;
+            }
+
+        .t-sub {
+            font-size: .8rem;
+            color: var(--txt-3);
+            margin-top: 2px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            height: 24px;
+            padding: 0 11px;
+            border-radius: 50px;
+            font-size: .74rem;
+            font-weight: 800;
+            letter-spacing: .3px;
+        }
+
+        .b-basic {
+            background: rgba(255,255,255,.1);
+            color: var(--txt-2);
+        }
+
+        .b-gold {
+            background: rgba(245,158,11,.16);
+            color: #fbbf24;
+        }
+
+        .b-premium {
+            background: rgba(168,85,247,.18);
+            color: #c084fc;
+        }
+
+        .b-elit {
+            background: linear-gradient(120deg, var(--accent), var(--accent-2));
+            color: #fff;
+        }
+
+        .t-plays {
+            font-size: .86rem;
+            color: var(--txt-3);
+        }
+
+        .t-dur {
+            font-size: .86rem;
+            color: var(--txt-3);
+            text-align: right;
+        }
+
+        .about {
+            max-width: 68ch;
+        }
+
+            .about h3 {
+                font-size: 1.15rem;
+                font-weight: 800;
+                margin-bottom: 12px;
+            }
+
+            .about p {
+                font-size: .95rem;
+                color: var(--txt-2);
+                line-height: 1.75;
+            }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .chip {
+            height: 30px;
+            padding: 0 14px;
+            border-radius: 50px;
+            background: var(--panel-3);
+            color: var(--txt-2);
+            font-size: .82rem;
+            font-weight: 700;
+            display: grid;
+            place-items: center;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--txt-3);
+        }
+
+            .empty i {
+                font-size: 2.3rem;
+                display: block;
+                margin-bottom: 12px;
+            }
+
+        /* ---------- PLAYER ---------- */
+        .player {
+            grid-column: 1 / -1;
+            grid-row: 2;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 0 16px;
+        }
+
+        .np {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 260px;
+            min-width: 0;
+        }
+
+        .np-art {
+            width: 54px;
+            height: 54px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            display: grid;
+            place-items: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+            transition: transform .4s;
+        }
+
+            .np-art.spin {
+                animation: spin 6s linear infinite;
+            }
+
+        .np-name {
+            font-size: .88rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .np-sub {
+            font-size: .76rem;
+            color: var(--txt-3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .eq {
+            display: none;
+            align-items: flex-end;
+            gap: 2px;
+            width: 20px;
+            height: 15px;
+        }
+
+            .eq.on {
+                display: flex;
+            }
+
+            .eq span {
+                flex: 1;
+                background: var(--ok);
+                border-radius: 1px;
+                animation: eqBar .85s ease-in-out infinite;
+            }
+
+                .eq span:nth-child(2) {
+                    animation-delay: .18s;
+                }
+
+                .eq span:nth-child(3) {
+                    animation-delay: .36s;
+                }
+
+                .eq span:nth-child(4) {
+                    animation-delay: .54s;
+                }
+
+        .pl-center {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pl-btns {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+            .pl-btns button {
+                border: none;
+                background: transparent;
+                color: var(--txt-2);
+                font-size: 1.05rem;
+                cursor: pointer;
+            }
+
+                .pl-btns button:hover {
+                    color: var(--txt);
+                }
+
+        .pl-play {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--txt) !important;
+            color: #000 !important;
+            display: grid;
+            place-items: center;
+            font-size: 1.1rem !important;
+            transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+        }
+
+            .pl-play:hover {
+                transform: scale(1.12);
+            }
+
+        .pl-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 520px;
+            font-size: .7rem;
+            color: var(--txt-3);
+        }
+
+        .track {
+            flex: 1;
+            height: 4px;
+            border-radius: 4px;
+            background: #4d4d4d;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .track-fill {
+            height: 100%;
+            width: 0;
+            background: var(--txt);
+            transition: width .2s linear;
+        }
+
+        .pl-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 200px;
+            justify-content: flex-end;
+            color: var(--txt-2);
+            font-size: 1rem;
+        }
+
+        .vol {
+            width: 92px;
+            height: 4px;
+            border-radius: 4px;
+            background: #4d4d4d;
+        }
+
+        .vol-fill {
+            height: 100%;
+            width: 68%;
+            border-radius: 4px;
+            background: var(--txt);
+        }
+
+        /* ---------- MODAL ---------- */
+        .backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 90;
+            background: rgba(0,0,0,.72);
+            backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+            .backdrop.on {
+                display: flex;
+                animation: fadeIn .2s ease;
+            }
+
+        .modal-card {
+            width: 100%;
+            max-width: 412px;
+            padding: 30px 28px 26px;
+            border-radius: 18px;
+            text-align: center;
+            background: #16161f;
+            border: 1px solid var(--line);
+            animation: pop .38s cubic-bezier(.22,1,.36,1) both;
+        }
+
+        .modal-ico {
+            width: 62px;
+            height: 62px;
+            margin: 0 auto 18px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 1.7rem;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        }
+
+        .modal-card h3 {
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: -.5px;
+            margin-bottom: 10px;
+        }
+
+        .modal-card p {
+            font-size: .94rem;
+            color: var(--txt-2);
+            line-height: 1.6;
+        }
+
+        .modal-pkg {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            margin-top: 16px;
+            padding: 7px 14px;
+            border-radius: 50px;
+            background: rgba(255,255,255,.06);
+            border: 1px solid var(--line);
+            font-size: .82rem;
+            color: var(--txt-2);
+        }
+
+        .modal-acts {
+            display: flex;
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+            .modal-acts button {
+                flex: 1;
+                height: 46px;
+                border-radius: 12px;
+                border: none;
+                font-family: inherit;
+                font-size: .93rem;
+                font-weight: 800;
+                cursor: pointer;
+                transition: transform .2s, filter .2s;
+            }
+
+        .m-ghost {
+            background: transparent;
+            border: 1px solid var(--line) !important;
+            color: var(--txt);
+        }
+
+            .m-ghost:hover {
+                border-color: rgba(255,255,255,.4) !important;
+            }
+
+        .m-cta {
+            background: linear-gradient(120deg, var(--accent), var(--accent-2));
+            color: #fff;
+        }
+
+            .m-cta:hover {
+                transform: translateY(-2px);
+                filter: brightness(1.12);
+            }
+
+        ::-webkit-scrollbar {
+            width: 11px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4a4a4a;
+            border-radius: 6px;
+            border: 3px solid transparent;
+            background-clip: content-box;
+        }
+
+        @@keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @@keyframes pop {
+            from {
+                opacity: 0;
+                transform: scale(.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @@keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @@keyframes eqBar {
+            0%, 100% {
+                height: 22%;
+            }
+
+            50% {
+                height: 100%;
+            }
+        }
+
+        @@media (max-width: 1000px) {
+            .shell {
+                grid-template-columns: 1fr;
+            }
+
+            .rail {
+                display: none;
+            }
+
+            .thead, .trow {
+                grid-template-columns: 34px 1fr 74px;
+            }
+
+            .t-pkg-col, .t-plays {
+                display: none;
+            }
+
+            .pl-right {
+                display: none;
+            }
+        }
+
+        @@media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+
+        <aside class="rail">
+            <div class="rail-box">
+                <div class="brand">
+                    <div class="brand-dot"><i class="bi bi-broadcast"></i></div>
+                    Echoa
+                </div>
+                <a class="nav-item" href="/Home/Index"><i class="bi bi-house-door"></i>Ana sayfa</a>
+                <a class="nav-item on" href="/Artist/ArtistListV2"><i class="bi bi-person-badge"></i>Sanatçılar</a>
+                <a class="nav-item" href="/Genre/GenreList"><i class="bi bi-collection"></i>Türler</a>
+                <a class="nav-item" href="/Song/SongList"><i class="bi bi-music-note-list"></i>Şarkılar</a>
+            </div>
+
+            <div class="rail-scroll">
+                <div class="rail-head"><i class="bi bi-info-circle"></i>&nbsp; Sanatçı bilgisi</div>
+                <div class="fact"><span>Ülke</span><span>@Model.Artist.Country</span></div>
+                <div class="fact"><span>Şarkı</span><span>@songs.Count</span></div>
+                <div class="fact"><span>Durum</span><span>@(Model.Artist.IsVerified ? "Onaylı" : "Standart")</span></div>
+                <div class="fact" style="border:none"><span>Dinlenme</span><span>@songs.Sum(s => s.ListenCount).ToString("N0")</span></div>
+                <p class="bio" style="margin-top:14px">@Model.Artist.Bio</p>
+            </div>
+        </aside>
+
+        <main class="main" id="main">
+
+            <div class="topbar" id="topbar">
+                <a class="circle-btn" href="/Artist/ArtistListV2" aria-label="Geri"><i class="bi bi-chevron-left"></i></a>
+                <div class="t-name">@Model.Artist.ArtistName</div>
+                <div class="spacer"></div>
+                <div class="pkg-pill"><i class="bi bi-gem"></i>@Model.UserPackageName</div>
+            </div>
+
+            <section class="hero">
+                <div class="hero-bg" style="background-image:url('@Model.Artist.CoverImageUrl')"></div>
+                <div class="hero-veil"></div>
+
+                @if (!string.IsNullOrEmpty(Model.Artist.ArtistImageUrl))
+                {
+                    <img class="ar-photo" src="@Model.Artist.ArtistImageUrl" alt="@Model.Artist.ArtistName"
+                         onerror="this.outerHTML='<div class=\'ar-fallback\'>@(Model.Artist.ArtistName.Substring(0, 1))</div>'" />
+                }
+                else
+                {
+                    <div class="ar-fallback">@Model.Artist.ArtistName.Substring(0, 1)</div>
+                }
+
+                <div class="ar-meta">
+                    <div class="ar-kicker">
+                        @if (Model.Artist.IsVerified)
+                        {
+                            <i class="bi bi-patch-check-fill"></i>
+                            <span>Onaylı sanatçı</span>
+                        }
+                        else
+                        {
+                            <span>Sanatçı</span>
+                        }
+                    </div>
+                    <h1 class="ar-name">@Model.Artist.ArtistName</h1>
+                    <div class="ar-stats">
+                        <span>@Model.Artist.Country</span>
+                        <span class="dot"></span>
+                        <span>@songs.Count şarkı</span>
+                        <span class="dot"></span>
+                        <span>@songs.Sum(s => s.ListenCount).ToString("N0") dinlenme</span>
+                    </div>
+                </div>
+            </section>
+
+            <div class="toolbar">
+                <button class="big-play" id="heroPlay" data-id="@(songs.Count > 0 ? songs.OrderByDescending(s => s.ListenCount).First().SongId : 0)" aria-label="Çal">
+                    <i class="bi bi-play-fill"></i>
+                </button>
+                <button class="ghost-btn" id="followBtn" type="button">Takip et</button>
+                <button class="icon-btn" aria-label="Daha fazla"><i class="bi bi-three-dots"></i></button>
+            </div>
+
+            <div class="tabs">
+                <button class="tab on" data-p="popular">Popüler</button>
+                <button class="tab" data-p="all">Tüm şarkılar</button>
+                <button class="tab" data-p="about">Hakkında</button>
+            </div>
+
+            <div class="pane on" id="p-popular">
+                @if (popular.Count == 0)
+                {
+                    <div class="empty"><i class="bi bi-music-note-beamed"></i>Bu sanatçıya ait şarkı yok.</div>
+                }
+                else
+                {
+                    <div class="thead">
+                        <div>#</div>
+                        <div>Başlık</div>
+                        <div class="t-pkg-col">Paket</div>
+                        <div class="t-plays">Dinlenme</div>
+                        <div style="text-align:right"><i class="bi bi-clock"></i></div>
+                    </div>
+                    @for (int i = 0; i < popular.Count; i++)
+                    {
+                        var s = popular[i];
+                        var locked = Model.UserPackageLevel < s.PackageLevel;
+                        <div class="trow @(locked ? "locked" : "")" style="animation-delay:@(i * 45)ms">
+                            <div class="t-num">
+                                <span class="n">@(i + 1)</span>
+                                <i class="bi bi-play-fill p listen" data-id="@s.SongId" data-name="@s.SongName" data-artist="@s.ArtistName" data-pkg="@s.PackageName"></i>
+                            </div>
+                            <div class="t-main">
+                                <div class="t-art-fb">@s.SongName.Substring(0, 1)</div>
+                                <div style="min-width:0">
+                                    <div class="t-title">
+                                        <span>@s.SongName</span>
+                                        @if (locked)
+                                        {
+                                            <i class="bi bi-lock-fill" title="@s.PackageName paketi gerekiyor"></i>
+                                        }
+                                    </div>
+                                    <div class="t-sub">@s.GenreName</div>
+                                </div>
+                            </div>
+                            <div class="t-pkg-col">
+                                <span class="badge b-@s.PackageName.ToLower()">@s.PackageName</span>
+                            </div>
+                            <div class="t-plays">@s.ListenCount.ToString("N0")</div>
+                            <div class="t-dur">@s.Duration.ToString("mm\\:ss")</div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <div class="pane" id="p-all">
+                @if (songs.Count == 0)
+                {
+                    <div class="empty"><i class="bi bi-music-note-beamed"></i>Bu sanatçıya ait şarkı yok.</div>
+                }
+                else
+                {
+                    <div class="thead">
+                        <div>#</div>
+                        <div>Başlık</div>
+                        <div class="t-pkg-col">Paket</div>
+                        <div class="t-plays">Yayın</div>
+                        <div style="text-align:right"><i class="bi bi-clock"></i></div>
+                    </div>
+                    @for (int i = 0; i < songs.Count; i++)
+                    {
+                        var s = songs[i];
+                        var locked = Model.UserPackageLevel < s.PackageLevel;
+                        <div class="trow @(locked ? "locked" : "")" style="animation-delay:@(i * 40)ms">
+                            <div class="t-num">
+                                <span class="n">@(i + 1)</span>
+                                <i class="bi bi-play-fill p listen" data-id="@s.SongId" data-name="@s.SongName" data-artist="@s.ArtistName" data-pkg="@s.PackageName"></i>
+                            </div>
+                            <div class="t-main">
+                                <div class="t-art-fb">@s.SongName.Substring(0, 1)</div>
+                                <div style="min-width:0">
+                                    <div class="t-title">
+                                        <span>@s.SongName</span>
+                                        @if (locked)
+                                        {
+                                            <i class="bi bi-lock-fill" title="@s.PackageName paketi gerekiyor"></i>
+                                        }
+                                    </div>
+                                    <div class="t-sub">@s.GenreName</div>
+                                </div>
+                            </div>
+                            <div class="t-pkg-col">
+                                <span class="badge b-@s.PackageName.ToLower()">@s.PackageName</span>
+                            </div>
+                            <div class="t-plays">@s.ReleaseDate.Year</div>
+                            <div class="t-dur">@s.Duration.ToString("mm\\:ss")</div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <div class="pane" id="p-about">
+                <div class="about">
+                    <h3>@Model.Artist.ArtistName hakkında</h3>
+                    <p>@Model.Artist.Bio</p>
+                    <div class="chips">
+                        <span class="chip"><i class="bi bi-geo-alt"></i>&nbsp;@Model.Artist.Country</span>
+                        <span class="chip">@songs.Count şarkı</span>
+                        @foreach (var g in songs.Select(x => x.GenreName).Distinct())
+                        {
+                            <span class="chip">@g</span>
+                        }
+                        @if (Model.Artist.IsVerified)
+                        {
+                            <span class="chip"><i class="bi bi-patch-check-fill"></i>&nbsp;Onaylı</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <div class="player">
+            <div class="np">
+                <div class="np-art" id="npArt"><i class="bi bi-music-note-beamed"></i></div>
+                <div style="min-width:0">
+                    <div class="np-name" id="npName">Bir şarkı seç</div>
+                    <div class="np-sub">
+                        <span id="npSub">Çalan bir şey yok</span>
+                        <span class="eq" id="eq"><span></span><span></span><span></span><span></span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="pl-center">
+                <div class="pl-btns">
+                    <button aria-label="Karıştır"><i class="bi bi-shuffle"></i></button>
+                    <button aria-label="Önceki"><i class="bi bi-skip-start-fill"></i></button>
+                    <button class="pl-play" id="plPlay" aria-label="Çal"><i class="bi bi-play-fill" id="plIcon"></i></button>
+                    <button aria-label="Sonraki"><i class="bi bi-skip-end-fill"></i></button>
+                    <button aria-label="Tekrarla"><i class="bi bi-repeat"></i></button>
+                </div>
+                <div class="pl-bar">
+                    <span id="tCur">0:00</span>
+                    <div class="track" id="track"><div class="track-fill" id="trackFill"></div></div>
+                    <span id="tEnd">3:20</span>
+                </div>
+            </div>
+            <div class="pl-right">
+                <i class="bi bi-volume-up"></i>
+                <div class="vol"><div class="vol-fill"></div></div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="backdrop" id="lockModal">
+        <div class="modal-card">
+            <div class="modal-ico"><i class="bi bi-lock-fill"></i></div>
+            <h3>Bu şarkı paketinde yok</h3>
+            <p id="lockMsg">Mevcut paketiniz bu şarkıyı desteklememektedir. Lütfen paketinizi yükseltin.</p>
+            <div class="modal-pkg">
+                <i class="bi bi-gem"></i>
+                Paketin: <strong>&nbsp;@Model.UserPackageName</strong>
+            </div>
+            <div class="modal-acts">
+                <button class="m-ghost" id="lockClose" type="button">Kapat</button>
+                <button class="m-cta" type="button">Paketi yükselt</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audio"></audio>
+
+    <script>
+        var main = document.getElementById('main');
+        var topbar = document.getElementById('topbar');
+        main.addEventListener('scroll', function () {
+            topbar.classList.toggle('stuck', main.scrollTop > 210);
+        });
+
+        document.querySelectorAll('.tab').forEach(function (t) {
+            t.addEventListener('click', function () {
+                document.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('on'); });
+                document.querySelectorAll('.pane').forEach(function (x) { x.classList.remove('on'); });
+                t.classList.add('on');
+                document.getElementById('p-' + t.dataset.p).classList.add('on');
+            });
+        });
+
+        var follow = document.getElementById('followBtn');
+        follow.addEventListener('click', function () {
+            follow.classList.toggle('on');
+            follow.textContent = follow.classList.contains('on') ? 'Takip ediliyor' : 'Takip et';
+        });
+
+        var modal = document.getElementById('lockModal');
+        var lockMsg = document.getElementById('lockMsg');
+        document.getElementById('lockClose').addEventListener('click', function () { modal.classList.remove('on'); });
+        modal.addEventListener('click', function (e) { if (e.target === modal) { modal.classList.remove('on'); } });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { modal.classList.remove('on'); } });
+
+        var audio = document.getElementById('audio');
+        var eq = document.getElementById('eq');
+        var npArt = document.getElementById('npArt');
+        var npName = document.getElementById('npName');
+        var npSub = document.getElementById('npSub');
+        var plPlay = document.getElementById('plPlay');
+        var plIcon = document.getElementById('plIcon');
+        var trackFill = document.getElementById('trackFill');
+        var tCur = document.getElementById('tCur');
+
+        var playing = false, seconds = 0, total = 200, timer = null;
+
+        function fmt(s) {
+            var m = Math.floor(s / 60), r = Math.floor(s % 60);
+            return m + ':' + (r < 10 ? '0' + r : r);
+        }
+
+        function render() {
+            trackFill.style.width = Math.round((seconds / total) * 100) + '%';
+            tCur.textContent = fmt(seconds);
+        }
+
+        function setPlaying(on) {
+            playing = on;
+            eq.classList.toggle('on', on);
+            npArt.classList.toggle('spin', on);
+            plIcon.className = on ? 'bi bi-pause-fill' : 'bi bi-play-fill';
+            clearInterval(timer);
+            if (on) {
+                timer = setInterval(function () {
+                    seconds++;
+                    if (seconds >= total) { seconds = 0; }
+                    render();
+                }, 1000);
+            }
+        }
+
+        plPlay.addEventListener('click', function () { setPlaying(!playing); });
+
+        document.getElementById('track').addEventListener('click', function (e) {
+            var r = this.getBoundingClientRect();
+            seconds = Math.round(((e.clientX - r.left) / r.width) * total);
+            render();
+        });
+
+        async function requestListen(id, name, artist, pkg) {
+            var res = await fetch('/Song/Listen/' + id, { method: 'POST' });
+
+            if (res.status === 403) {
+                lockMsg.textContent = name + ' şarkısı ' + pkg + ' paketine ait. Mevcut paketiniz bu şarkıyı desteklememektedir. Lütfen paketinizi yükseltin.';
+                modal.classList.add('on');
+                return;
+            }
+
+            if (res.status === 401) {
+                window.location.href = '/Login/SignIn';
+                return;
+            }
+
+            if (!res.ok) { return; }
+
+            var data = await res.json();
+            npName.textContent = data.songName || name;
+            npSub.textContent = data.artistName || artist;
+            seconds = 0;
+            render();
+            setPlaying(true);
+
+            if (data.audioUrl) {
+                audio.src = data.audioUrl;
+                audio.play().catch(function () { });
+            }
+        }
+
+        document.querySelectorAll('.listen').forEach(function (b) {
+            b.addEventListener('click', function () {
+                requestListen(b.dataset.id, b.dataset.name, b.dataset.artist, b.dataset.pkg);
+            });
+        });
+
+        var heroPlay = document.getElementById('heroPlay');
+        heroPlay.addEventListener('click', function () {
+            var first = document.querySelector('#p-popular .listen');
+            if (first) {
+                requestListen(first.dataset.id, first.dataset.name, first.dataset.artist, first.dataset.pkg);
+            }
+        });
+
+        render();
+    </script>
+</body>
+</html>

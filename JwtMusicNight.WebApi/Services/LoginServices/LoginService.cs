@@ -24,8 +24,7 @@ namespace JwtMusicNight.WebApi.Services.LoginServices
             _configuration = configuration;
             _context = context;
         }
-
-        public async Task<string> LoginAsync(LoginDto loginDto)
+        public async Task<LoginResponseDto> LoginAsync(LoginDto loginDto)
         {
             var user = await _userManager.FindByNameAsync(loginDto.Username);
 
@@ -41,26 +40,31 @@ namespace JwtMusicNight.WebApi.Services.LoginServices
                 return null;
             }
 
-            return await GenerateToken(user);
+            var package = await _context.Packages
+                .FirstOrDefaultAsync(p => p.PackageId == user.PackageId);
+
+            return new LoginResponseDto
+            {
+                Token = await GenerateToken(user, package),
+                PackageName = package.PackageName,
+                PackageLevel = package.Level
+            };
         }
 
-        private async Task<string> GenerateToken(AppUser appUser)
+        private async Task<string> GenerateToken(AppUser appUser, Package package)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
             var roles = await _userManager.GetRolesAsync(appUser);
 
-            var package = await _context.Packages
-                .FirstOrDefaultAsync(p => p.PackageId == appUser.PackageId);
-
             var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, appUser.Id),
-                new Claim(ClaimTypes.Email, appUser.Email),
-                new Claim(ClaimTypes.Name, appUser.Name),
-                new Claim(ClaimTypes.Surname, appUser.Surname),
-                new Claim("PackageLevel", package.Level.ToString()),
-                new Claim("PackageName", package.PackageName),
-            };
+    {
+        new Claim(ClaimTypes.NameIdentifier, appUser.Id),
+        new Claim(ClaimTypes.Email, appUser.Email),
+        new Claim(ClaimTypes.Name, appUser.Name),
+        new Claim(ClaimTypes.Surname, appUser.Surname),
+        new Claim("PackageLevel", package.Level.ToString()),
+        new Claim("PackageName", package.PackageName),
+    };
 
             foreach (var role in roles)
             {
@@ -68,7 +72,6 @@ namespace JwtMusicNight.WebApi.Services.LoginServices
             }
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]!));
-
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(

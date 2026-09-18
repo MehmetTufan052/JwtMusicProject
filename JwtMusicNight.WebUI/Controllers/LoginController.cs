@@ -32,6 +32,8 @@ namespace JwtMusicNight.WebUI.Controllers
                 var jsonResponse=await responseMessage.Content.ReadAsStringAsync();
                 var tokenModel=JsonConvert.DeserializeObject<TokenResponseDto>(jsonResponse);
                 HttpContext.Session.SetString("JwtToken", tokenModel.Token);
+                HttpContext.Session.SetString("PackageName", tokenModel.PackageName);
+                HttpContext.Session.SetInt32("PackageLevel", tokenModel.PackageLevel);
 
                 return RedirectToAction("ArtistListV2", "Artist");
             }

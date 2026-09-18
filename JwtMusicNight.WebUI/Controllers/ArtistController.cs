@@ -61,58 +61,17 @@ namespace JwtMusicNight.WebUI.Controllers
             }
 
             var artistJson = await artistResponse.Content.ReadAsStringAsync();
-            var artist = JsonConvert.DeserializeObject<ResultArtistDto>(artistJson);
-
-            var songResponse = await client.GetAsync("https://localhost:7292/api/Song/byartist/" + id);
-            var songJson = await songResponse.Content.ReadAsStringAsync();
-            var songs = JsonConvert.DeserializeObject<List<ResultSongDto>>(songJson);
+            var songsJson = await client.GetStringAsync("https://localhost:7292/api/Song/byartist/" + id);
 
             var model = new ArtistDetailViewModel
             {
-                Artist = artist,
-                Songs = songs ?? new List<ResultSongDto>(),
-                UserPackageLevel = ReadClaimInt(token, "PackageLevel"),
-                UserPackageName = ReadClaimString(token, "PackageName")
+                Artist = JsonConvert.DeserializeObject<ResultArtistDto>(artistJson),
+                Songs = JsonConvert.DeserializeObject<List<ResultSongDto>>(songsJson),
+                UserPackageLevel = HttpContext.Session.GetInt32("PackageLevel") ?? 0,
+                UserPackageName = HttpContext.Session.GetString("PackageName") ?? "Basic"
             };
 
             return View(model);
-        }
-
-        private static string ReadTokenPayload(string token)
-        {
-            var payload = token.Split('.')[1];
-            payload = payload.Replace('-', '+').Replace('_', '/');
-
-            if (payload.Length % 4 == 2) { payload += "=="; }
-            else if (payload.Length % 4 == 3) { payload += "="; }
-
-            return System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(payload));
-        }
-
-        private static int ReadClaimInt(string token, string key)
-        {
-            try
-            {
-                var json = JObject.Parse(ReadTokenPayload(token));
-                return int.Parse(json[key].ToString());
-            }
-            catch
-            {
-                return 0;
-            }
-        }
-
-        private static string ReadClaimString(string token, string key)
-        {
-            try
-            {
-                var json = JObject.Parse(ReadTokenPayload(token));
-                return json[key].ToString();
-            }
-            catch
-            {
-                return "Basic";
-            }
         }
     }
 }

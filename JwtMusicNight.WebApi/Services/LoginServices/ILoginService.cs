@@ -4,6 +4,6 @@ namespace JwtMusicNight.WebApi.Services.LoginServices
 {
     public interface ILoginService
     {
-        Task<string> LoginAsync(LoginDto loginDto);
+        Task<LoginResponseDto> LoginAsync(LoginDto loginDto);
     }
 }
