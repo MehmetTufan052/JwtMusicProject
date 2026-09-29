@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using JwtMusicNight.WebUI.Dtos;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Net.Http.Headers;
 
 namespace JwtMusicNight.WebUI.Controllers
@@ -10,6 +12,34 @@ namespace JwtMusicNight.WebUI.Controllers
         public SongController(IHttpClientFactory httpClientFactory)
         {
             _httpClientFactory = httpClientFactory;
+        }
+
+        public async Task<IActionResult> Charts()
+        {
+            var token = HttpContext.Session.GetString("JwtToken");
+
+            if (string.IsNullOrEmpty(token))
+            {
+                return RedirectToAction("SignIn", "Login");
+            }
+
+            var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.GetAsync("https://localhost:7292/api/Song");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return RedirectToAction("SignIn", "Login");
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            var songs = JsonConvert.DeserializeObject<List<ResultSongDto>>(json);
+
+            ViewBag.PackageName = HttpContext.Session.GetString("PackageName") ?? "Basic";
+            ViewBag.PackageLevel = HttpContext.Session.GetInt32("PackageLevel") ?? 0;
+
+            return View(songs);
         }
 
         [HttpPost]
