@@ -58,12 +58,41 @@ namespace JwtMusicNight.WebUI.Controllers
             var response = await client.PostAsync("https://localhost:7292/api/Song/listen/" + id, null);
             var body = await response.Content.ReadAsStringAsync();
 
+            if (response.IsSuccessStatusCode)
+            {
+                var json = Newtonsoft.Json.Linq.JObject.Parse(body);
+                json["audioUrl"] = Url.Action(nameof(Stream), "Song", new { id });
+                body = json.ToString(Newtonsoft.Json.Formatting.None);
+            }
+
             return new ContentResult
             {
                 Content = body,
                 ContentType = "application/json",
                 StatusCode = (int)response.StatusCode
             };
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Stream(int id)
+        {
+            var token = HttpContext.Session.GetString("JwtToken");
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return Unauthorized();
+            }
+
+            var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.GetAsync("https://localhost:7292/api/Song/stream/" + id);
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode);
+            }
+
+            var audioBytes = await response.Content.ReadAsByteArrayAsync();
+            return File(audioBytes, "audio/mpeg", enableRangeProcessing: true);
         }
     }
 }

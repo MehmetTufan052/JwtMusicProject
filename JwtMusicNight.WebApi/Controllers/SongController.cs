@@ -11,10 +11,12 @@ namespace JwtMusicNight.WebApi.Controllers
     public class SongController : ControllerBase
     {
         private readonly ISongService _songService;
+        private readonly IWebHostEnvironment _environment;
 
-        public SongController(ISongService songService)
+        public SongController(ISongService songService, IWebHostEnvironment environment)
         {
             _songService = songService;
+            _environment = environment;
         }
 
         [HttpPost("listen/{id}")]
@@ -45,9 +47,45 @@ namespace JwtMusicNight.WebApi.Controllers
             {
                 song.SongId,
                 song.SongName,
-                song.AudioUrl,
+                AudioUrl = $"/api/Song/stream/{song.SongId}",
                 ArtistName = song.Artist.ArtistName
             });
+        }
+
+        [HttpGet("stream/{id}")]
+        [Authorize]
+        public async Task<IActionResult> Stream(int id)
+        {
+            var song = await _songService.GetSongByIdAsync(id);
+            if (song == null)
+            {
+                return NotFound("Şarkı bulunamadı.");
+            }
+
+            var packageLevelClaim = User.FindFirst("PackageLevel")?.Value;
+            if (!int.TryParse(packageLevelClaim, out var userLevel))
+            {
+                return Forbid();
+            }
+
+            if (userLevel < song.Package.Level)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    message = "Mevcut paketiniz bu şarkıyı desteklememektedir. Lütfen paketinizi yükseltin."
+                });
+            }
+
+            var musicRoot = Path.Combine(_environment.ContentRootPath, "MusicFiles");
+            var safeFileName = Path.GetFileName(song.AudioUrl);
+            var filePath = Path.Combine(musicRoot, safeFileName);
+
+            if (string.IsNullOrWhiteSpace(safeFileName) || !System.IO.File.Exists(filePath))
+            {
+                return NotFound("MP3 dosyası bulunamadı.");
+            }
+
+            return PhysicalFile(filePath, "audio/mpeg", enableRangeProcessing: true);
         }
         
         [HttpGet]
