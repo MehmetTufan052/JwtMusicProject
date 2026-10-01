@@ -1,4 +1,5 @@
 ﻿using JwtMusicNight.WebUI.Dtos;
+using JwtMusicNight.WebUI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
@@ -93,6 +94,33 @@ namespace JwtMusicNight.WebUI.Controllers
 
             var audioBytes = await response.Content.ReadAsByteArrayAsync();
             return File(audioBytes, "audio/mpeg", enableRangeProcessing: true);
+        }
+
+        public async Task<IActionResult> SongDetail(int id)
+        {
+            var token = HttpContext.Session.GetString("JwtToken");
+            if (string.IsNullOrEmpty(token))
+                return RedirectToAction("SignIn", "Login");
+
+            var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var songResponse = await client.GetAsync($"https://localhost:7292/api/Song/{id}");
+            if (!songResponse.IsSuccessStatusCode)
+                return RedirectToAction("Charts");
+
+            var songJson = await songResponse.Content.ReadAsStringAsync();
+            var recommendationsJson = await client.GetStringAsync($"https://localhost:7292/api/Song/{id}/recommendations");
+
+            var model = new SongDetailViewModel
+            {
+                Song = JsonConvert.DeserializeObject<ResultSongDto>(songJson),
+                Recommendations = JsonConvert.DeserializeObject<List<ResultSongDto>>(recommendationsJson) ?? new(),
+                UserPackageLevel = HttpContext.Session.GetInt32("PackageLevel") ?? 0,
+                UserPackageName = HttpContext.Session.GetString("PackageName") ?? "Basic"
+            };
+
+            return View(model);
         }
     }
 }

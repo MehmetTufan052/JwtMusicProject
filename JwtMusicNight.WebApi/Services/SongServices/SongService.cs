@@ -72,5 +72,32 @@ namespace JwtMusicNight.WebApi.Services.SongServices
 
             return _mapper.Map<List<ResultSongDto>>(songs);
         }
+
+        public async Task<ResultSongDto> GetSongDetailAsync(int id)
+        {
+            var song = await _context.Songs
+            .Include(s => s.Artist)
+            .Include(s => s.Genre)
+            .Include(s => s.Package)
+            .FirstOrDefaultAsync(s => s.SongId == id);
+
+            return _mapper.Map<ResultSongDto>(song);
+        }
+
+        public async Task<List<ResultSongDto>> GetRecommendationsAsync(int songId, int count = 5)
+        {
+            var current = await _context.Songs.FindAsync(songId);
+
+            var songs = await _context.Songs
+                .Include(s => s.Artist)
+                .Include(s => s.Genre)
+                .Include(s => s.Package)
+                .Where(s => s.GenreId == current.GenreId && s.SongId != songId)
+                .OrderByDescending(s => s.ListenCount)
+                .Take(count)
+                .ToListAsync();
+
+            return _mapper.Map<List<ResultSongDto>>(songs);
+        }
     }
 }

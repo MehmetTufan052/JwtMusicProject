@@ -10,5 +10,7 @@ namespace JwtMusicNight.WebApi.Services.SongServices
         Task<List<ResultSongDto>> GetAllSongsAsync();
         Task<List<ResultSongDto>> GetSongsByGenreAsync(int genreId);
         Task<List<ResultSongDto>> GetSongsByArtistAsync(int artistId);
+        Task<ResultSongDto> GetSongDetailAsync(int id);
+        Task<List<ResultSongDto>> GetRecommendationsAsync(int songId, int count = 5);
     }
 }

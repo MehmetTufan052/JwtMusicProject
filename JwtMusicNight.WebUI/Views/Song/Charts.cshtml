@@ -10,6 +10,7 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+    <script src="/js/spa-router.js"></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
@@ -501,7 +502,7 @@
                         {
                             var featured = ranked[i];
                             var featuredLocked = userLevel < featured.PackageLevel;
-                            <article class="song-card @(featuredLocked ? "locked" : "")" style="animation-delay:@(i * 55)ms">
+                            <a class="song-card @(featuredLocked ? "locked" : "")" href="/Song/SongDetail/@featured.SongId" style="animation-delay:@(i * 55)ms">
                                 <div class="card-art">
                                     @if (!string.IsNullOrWhiteSpace(featured.CoverImageUrl))
                                     {
@@ -528,7 +529,7 @@
                                     <span class="card-genre">@featured.GenreName</span>
                                     <span class="badge b-@featured.PackageName.ToLower()">@featured.PackageName</span>
                                 </div>
-                            </article>
+                            </a>
                         }
                     </div>
                 }
@@ -566,7 +567,8 @@
                             var locked = userLevel < s.PackageLevel;
                             <div class="trow @(locked ? "locked" : "")"
                                  style="animation-delay:@(i * 30)ms"
-                                 data-name="@s.SongName.ToLower()" data-artist="@s.ArtistName.ToLower()" data-g="@(s.GenreName == null ? "" : s.GenreName.ToLower())">
+                                 data-name="@s.SongName.ToLower()" data-artist="@s.ArtistName.ToLower()" data-g="@(s.GenreName == null ? "" : s.GenreName.ToLower())"
+                                 data-href="/Song/SongDetail/@s.SongId">
                                 <div class="t-num">
                                     <span class="n">@(i + 1)</span>
                                     <i class="bi bi-play-fill p listen" data-id="@s.SongId" data-name="@s.SongName" data-artist="@s.ArtistName" data-pkg="@s.PackageName"></i>
@@ -780,12 +782,58 @@
         }
 
         document.querySelectorAll('.listen, .featured-listen').forEach(function (el) {
-            el.addEventListener('click', function () {
+            el.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
                 requestListen(this.dataset.id, this.dataset.name, this.dataset.artist, this.dataset.pkg);
             });
         });
 
+        document.querySelectorAll('.trow').forEach(function (row) {
+            row.addEventListener('click', function (e) {
+                if (e.target.closest('.listen')) { return; }
+                if (window.spaNavigate) { window.spaNavigate(this.dataset.href); }
+                else { window.location.href = this.dataset.href; }
+            });
+            row.style.cursor = 'pointer';
+        });
+
         render();
+
+        (function () {
+            var STORAGE_KEY = 'echoaNowPlaying';
+            var audioEl = document.getElementById('audio');
+            if (!audioEl) return;
+
+            var saved = sessionStorage.getItem(STORAGE_KEY);
+            if (!audioEl.src && saved) {
+                try {
+                    var state = JSON.parse(saved);
+                    if (state.src) {
+                        audioEl.src = state.src;
+                        audioEl.currentTime = state.time || 0;
+                        if (state.playing) {
+                            audioEl.play().catch(function () { });
+                        }
+                        var npNameEl = document.getElementById('npName');
+                        var npSubEl = document.getElementById('npSub');
+                        if (npNameEl && state.name) { npNameEl.textContent = state.name; }
+                        if (npSubEl && state.artist) { npSubEl.textContent = state.artist; }
+                    }
+                } catch (e) { }
+            }
+
+            window.addEventListener('pagehide', function () {
+                if (!audioEl.src) return;
+                sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    src: audioEl.src,
+                    time: audioEl.currentTime,
+                    playing: !audioEl.paused,
+                    name: (document.getElementById('npName') || {}).textContent,
+                    artist: (document.getElementById('npSub') || {}).textContent
+                }));
+            });
+        })();
     </script>
 </body>
 </html>

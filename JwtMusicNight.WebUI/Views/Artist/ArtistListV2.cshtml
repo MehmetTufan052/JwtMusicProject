@@ -6,6 +6,7 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+    <script src="/js/spa-router.js"></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
@@ -1018,7 +1019,7 @@
                 <a class="nav-item" href="/Home/Index"><i class="bi bi-house-door"></i>Ana sayfa</a>
                 <a class="nav-item on" href="/Artist/ArtistListV2"><i class="bi bi-person-badge"></i>Sanatçılar</a>
                 <a class="nav-item" href="/Genre/GenreList"><i class="bi bi-collection"></i>Türler</a>
-                <a class="nav-item" href="/Song/SongList"><i class="bi bi-music-note-list"></i>Şarkılar</a>
+                <a class="nav-item" href="/Song/Charts"><i class="bi bi-music-note-list"></i>Şarkılar</a>
             </div>
 
             <div class="rail-scroll">
@@ -1167,6 +1168,8 @@
 
     </div>
 
+    <audio id="audio"></audio>
+
     <script>
         var main = document.getElementById('main');
         var topbar = document.getElementById('topbar');
@@ -1222,6 +1225,7 @@
         var plIcon = document.getElementById('plIcon');
         var trackFill = document.getElementById('trackFill');
         var tCur = document.getElementById('tCur');
+        var audioEl = document.getElementById('audio');
 
         var playing = false;
         var seconds = 0;
@@ -1245,6 +1249,7 @@
             npArt.classList.toggle('spin', on);
             plIcon.className = on ? 'bi bi-pause-fill' : 'bi bi-play-fill';
             plPlay.setAttribute('aria-label', on ? 'Duraklat' : 'Çal');
+            if (on) { audioEl.play().catch(function () { }); } else { audioEl.pause(); }
             clearInterval(timer);
             if (on) {
                 timer = setInterval(function () {
@@ -1283,6 +1288,34 @@
         });
 
         render();
+
+        (function () {
+            var STORAGE_KEY = 'echoaNowPlaying';
+            var saved = sessionStorage.getItem(STORAGE_KEY);
+            if (!audioEl.src && saved) {
+                try {
+                    var state = JSON.parse(saved);
+                    if (state.src) {
+                        audioEl.src = state.src;
+                        audioEl.currentTime = state.time || 0;
+                        if (state.name) { npName.textContent = state.name; }
+                        if (state.artist) { npSub.textContent = state.artist; }
+                        if (state.playing) { setPlaying(true); }
+                    }
+                } catch (e) { }
+            }
+
+            window.addEventListener('pagehide', function () {
+                if (!audioEl.src) return;
+                sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    src: audioEl.src,
+                    time: audioEl.currentTime,
+                    playing: !audioEl.paused,
+                    name: npName.textContent,
+                    artist: npSub.textContent
+                }));
+            });
+        })();
     </script>
 </body>
 </html>

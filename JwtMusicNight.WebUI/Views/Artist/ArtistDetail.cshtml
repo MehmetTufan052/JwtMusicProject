@@ -8,6 +8,7 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+    <script src="/js/spa-router.js"></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
@@ -1404,6 +1405,41 @@
         });
 
         render();
+
+        (function () {
+            var STORAGE_KEY = 'echoaNowPlaying';
+            var audioEl = document.getElementById('audio');
+            if (!audioEl) return;
+
+            var saved = sessionStorage.getItem(STORAGE_KEY);
+            if (!audioEl.src && saved) {
+                try {
+                    var state = JSON.parse(saved);
+                    if (state.src) {
+                        audioEl.src = state.src;
+                        audioEl.currentTime = state.time || 0;
+                        if (state.playing) {
+                            audioEl.play().catch(function () { });
+                        }
+                        var npNameEl = document.getElementById('npName');
+                        var npSubEl = document.getElementById('npSub');
+                        if (npNameEl && state.name) { npNameEl.textContent = state.name; }
+                        if (npSubEl && state.artist) { npSubEl.textContent = state.artist; }
+                    }
+                } catch (e) { }
+            }
+
+            window.addEventListener('pagehide', function () {
+                if (!audioEl.src) return;
+                sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    src: audioEl.src,
+                    time: audioEl.currentTime,
+                    playing: !audioEl.paused,
+                    name: (document.getElementById('npName') || {}).textContent,
+                    artist: (document.getElementById('npSub') || {}).textContent
+                }));
+            });
+        })();
     </script>
 </body>
 </html>

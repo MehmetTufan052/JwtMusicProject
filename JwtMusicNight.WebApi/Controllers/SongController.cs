@@ -111,5 +111,22 @@ namespace JwtMusicNight.WebApi.Controllers
             var values = await _songService.GetSongsByArtistAsync(artistId);
             return Ok(values);
         }
+
+        [HttpGet("{id}")]
+        [Authorize]
+        public async Task<IActionResult> SongDetail(int id)
+        {
+            var song = await _songService.GetSongDetailAsync(id);
+            if(song==null) return NotFound("Sarki bulunamadi.");
+            return Ok(song);
+        }
+
+        [HttpGet("{id}/recommendations")]
+        [Authorize]
+        public async Task<IActionResult> GetRecommendations(int id)
+        {
+            var values=await _songService.GetRecommendationsAsync(id);
+            return Ok(values);
+        }
     }
 }
