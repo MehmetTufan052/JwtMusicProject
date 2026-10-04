@@ -44,7 +44,13 @@
         .search input:focus { border-color:rgba(255,255,255,.3); }
         .spacer { flex:1; }
         .pkg { padding:8px 14px; border-radius:50px; background:linear-gradient(135deg,var(--accent),var(--pink)); font-size:.78rem; font-weight:800; }
-        .avatar { width:32px; height:32px; border-radius:50%; display:grid; place-items:center; background:var(--panel3); color:var(--muted); }
+        .avatar { width:32px; height:32px; border-radius:50%; display:grid; place-items:center; background:var(--panel3); color:var(--muted); cursor:pointer; }
+        .user-menu { position:relative; }
+        .user-dropdown { position:absolute; top:calc(100% + 10px); right:0; min-width:180px; background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:8px; display:none; flex-direction:column; gap:4px; z-index:50; box-shadow:0 16px 40px rgba(0,0,0,.4); }
+        .user-dropdown.show { display:flex; }
+        .user-dropdown-pkg { display:flex; align-items:center; gap:7px; padding:8px 10px; font-size:.78rem; color:var(--muted); border-bottom:1px solid var(--line); margin-bottom:4px; }
+        .user-dropdown-logout { display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:8px; font-size:.82rem; color:var(--txt); cursor:pointer; }
+        .user-dropdown-logout:hover { background:var(--panel3); color:#f43f5e; }
 
         .hero { position:relative; overflow:hidden; padding:58px 24px 46px; background:linear-gradient(125deg,#261035 0,#17121d 45%,#121212 78%); }
         .hero::after { content:''; position:absolute; width:360px; height:360px; right:-80px; top:-170px; border-radius:50%; background:rgba(236,72,153,.25); filter:blur(70px); }
@@ -98,11 +104,17 @@
         .now-art { width:52px; height:52px; flex:none; border-radius:8px; display:grid; place-items:center; background:linear-gradient(135deg,var(--accent),var(--pink)); }
         .now-name { font-size:.86rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .now-artist { margin-top:3px; color:var(--muted2); font-size:.72rem; }
-        .controls { flex:1; min-width:0; display:flex; align-items:center; justify-content:center; gap:18px; }
+        .controls { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; }
+        .controls-row { display:flex; align-items:center; justify-content:center; gap:18px; }
         .controls button { border:0; background:transparent; color:var(--muted); cursor:pointer; font-size:1rem; }
+        .controls button.active { color:var(--accent); }
         .controls .main-play { width:38px; height:38px; border-radius:50%; display:grid; place-items:center; background:#fff; color:#000; font-size:1.2rem; }
+        .pl-bar { display:flex; align-items:center; gap:8px; width:100%; max-width:420px; font-size:.68rem; color:var(--muted2); }
+        .track { flex:1; height:4px; border-radius:4px; background:#3a3a3a; overflow:hidden; cursor:pointer; }
+        .track-fill { height:100%; width:0; background:var(--txt); transition:width .2s linear; }
         .volume { width:255px; display:flex; justify-content:flex-end; align-items:center; gap:10px; color:var(--muted); }
-        .vol-line { width:90px; height:4px; border-radius:5px; background:linear-gradient(90deg,#fff 68%,#444 68%); }
+        .vol-line { width:90px; height:4px; border-radius:5px; background:#444; overflow:hidden; cursor:pointer; }
+        .vol-fill { height:100%; width:100%; background:#fff; }
 
         .backdrop { position:fixed; inset:0; z-index:100; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(0,0,0,.72); backdrop-filter:blur(6px); }
         .backdrop.show { display:flex; }
@@ -129,7 +141,7 @@
         </aside>
 
         <main class="main" id="main">
-            <div class="topbar" id="topbar"><div class="search"><i class="bi bi-search"></i><input id="search" placeholder="Şarkı veya sanatçı ara" /></div><div class="spacer"></div><div class="pkg"><i class="bi bi-gem"></i>&nbsp; @Model.UserPackageName</div><div class="avatar"><i class="bi bi-person-fill"></i></div></div>
+            <div class="topbar" id="topbar"><div class="search"><i class="bi bi-search"></i><input id="search" placeholder="Şarkı veya sanatçı ara" /></div><div class="spacer"></div><div class="pkg"><i class="bi bi-gem"></i>&nbsp; @Model.UserPackageName</div><div class="user-menu" id="userMenu"><div class="avatar" id="avatarBtn"><i class="bi bi-person-fill"></i></div><div class="user-dropdown" id="userDropdown"><a class="user-dropdown-logout" href="/Login/Logout"><i class="bi bi-box-arrow-right"></i>Çıkış yap</a></div></div></div>
             <section class="hero"><div class="eyebrow">Müzik koleksiyonu</div><h1>Türünü seç.<br />Ritmini bul.</h1><p>Ruh hâline en uygun müziği keşfet. Türler arasında gezin, sevdiğin şarkıya dokun ve dinlemeye başla.</p><div class="hero-meta"><span>@Model.Genres.Count tür</span><span>@Model.Songs.Count şarkı</span></div></section>
             <section class="content">
                 <div class="genre-picker">
@@ -151,19 +163,44 @@
             </section>
         </main>
 
-        <div class="player"><div class="now"><div class="now-art"><i class="bi bi-music-note-beamed"></i></div><div style="min-width:0"><div class="now-name" id="nowName">Bir şarkı seç</div><div class="now-artist" id="nowArtist">Çalan bir şey yok</div></div></div><div class="controls"><button><i class="bi bi-shuffle"></i></button><button><i class="bi bi-skip-start-fill"></i></button><button class="main-play" id="mainPlay"><i class="bi bi-play-fill" id="mainIcon"></i></button><button><i class="bi bi-skip-end-fill"></i></button><button><i class="bi bi-repeat"></i></button></div><div class="volume"><i class="bi bi-volume-up"></i><div class="vol-line"></div></div></div>
+        <div class="player"><div class="now"><div class="now-art"><i class="bi bi-music-note-beamed"></i></div><div style="min-width:0"><div class="now-name" id="nowName">Bir şarkı seç</div><div class="now-artist" id="nowArtist">Çalan bir şey yok</div></div></div><div class="controls"><div class="controls-row"><button id="shuffleBtn"><i class="bi bi-shuffle"></i></button><button id="mainPrev"><i class="bi bi-skip-start-fill"></i></button><button class="main-play" id="mainPlay"><i class="bi bi-play-fill" id="mainIcon"></i></button><button id="mainNext"><i class="bi bi-skip-end-fill"></i></button><button id="repeatBtn"><i class="bi bi-repeat"></i></button></div><div class="pl-bar"><span id="tCur">0:00</span><div class="track" id="track"><div class="track-fill" id="trackFill"></div></div><span id="tEnd">0:00</span></div></div><div class="volume"><i class="bi bi-volume-up" id="volIcon"></i><div class="vol-line" id="volTrack"><div class="vol-fill" id="volFill"></div></div></div></div>
     </div>
     <div class="backdrop" id="modal"><div class="modal"><div class="modal-icon"><i class="bi bi-lock-fill"></i></div><h3>Paketini yükselt</h3><p id="modalText">Mevcut paketiniz bu şarkıyı desteklememektedir. Lütfen paketinizi yükseltin.</p><button id="modalClose">Anladım</button></div></div>
     <audio id="audio"></audio>
     <script>
-        const main=document.getElementById('main'),topbar=document.getElementById('topbar'); main.addEventListener('scroll',()=>topbar.classList.toggle('stuck',main.scrollTop>8));
-        const cards=[...document.querySelectorAll('.song')],search=document.getElementById('search'),empty=document.getElementById('empty'),count=document.getElementById('resultCount'); let selected='all';
-        function filter(){const q=search.value.trim().toLowerCase();let shown=0;cards.forEach(c=>{const ok=(selected==='all'||c.dataset.genre===selected)&&(!q||c.dataset.name.includes(q)||c.dataset.artist.includes(q));c.classList.toggle('hidden',!ok);if(ok)shown++;});empty.style.display=shown?'none':'block';count.textContent=shown+' şarkı';}
-        search.addEventListener('input',filter); document.getElementById('chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));b.classList.add('active');selected=b.dataset.genre;document.getElementById('songHeading').textContent=selected==='all'?'Tüm şarkılar':b.textContent.trim()+' şarkıları';filter();document.getElementById('songHeading').scrollIntoView({behavior:'smooth',block:'center'});});
-        const modal=document.getElementById('modal'),modalText=document.getElementById('modalText'),audio=document.getElementById('audio'),icon=document.getElementById('mainIcon');
+        var main=document.getElementById('main'),topbar=document.getElementById('topbar'); main.addEventListener('scroll',()=>topbar.classList.toggle('stuck',main.scrollTop>8));
+        var avatarBtn=document.getElementById('avatarBtn'),userDropdown=document.getElementById('userDropdown');
+        if(avatarBtn&&userDropdown){avatarBtn.addEventListener('click',e=>{e.stopPropagation();userDropdown.classList.toggle('show');});document.addEventListener('click',()=>userDropdown.classList.remove('show'));}
+        var cards=[...document.querySelectorAll('.song')],search=document.getElementById('search'),empty=document.getElementById('empty'),count=document.getElementById('resultCount'); var selected='all';
+        function filter(){var q=search.value.trim().toLowerCase();var shown=0;cards.forEach(c=>{var ok=(selected==='all'||c.dataset.genre===selected)&&(!q||c.dataset.name.includes(q)||c.dataset.artist.includes(q));c.classList.toggle('hidden',!ok);if(ok)shown++;});empty.style.display=shown?'none':'block';count.textContent=shown+' şarkı';}
+        search.addEventListener('input',filter); document.getElementById('chips').addEventListener('click',e=>{var b=e.target.closest('.chip');if(!b)return;document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));b.classList.add('active');selected=b.dataset.genre;document.getElementById('songHeading').textContent=selected==='all'?'Tüm şarkılar':b.textContent.trim()+' şarkıları';filter();document.getElementById('songHeading').scrollIntoView({behavior:'smooth',block:'center'});});
+        var modal=document.getElementById('modal'),modalText=document.getElementById('modalText'),audio=document.getElementById('audio'),icon=document.getElementById('mainIcon');
         document.getElementById('modalClose').onclick=()=>modal.classList.remove('show'); modal.onclick=e=>{if(e.target===modal)modal.classList.remove('show');};
-        async function listen(btn){const response=await fetch('/Song/Listen/'+btn.dataset.id,{method:'POST'});if(response.status===403){modalText.textContent=btn.dataset.name+' şarkısı '+btn.dataset.package+' paketine ait. Mevcut paketiniz bu şarkıyı desteklememektedir.';modal.classList.add('show');return;}if(response.status===401){location.href='/Login/SignIn';return;}if(!response.ok)return;const data=await response.json();document.getElementById('nowName').textContent=data.songName||btn.dataset.name;document.getElementById('nowArtist').textContent=data.artistName||btn.dataset.artist;icon.className='bi bi-pause-fill';if(data.audioUrl){audio.src=data.audioUrl;audio.play().catch(()=>{});}}
+        var trackEl=document.getElementById('track'),trackFill=document.getElementById('trackFill'),tCur=document.getElementById('tCur'),tEnd=document.getElementById('tEnd');
+        function fmt(s){var m=Math.floor(s/60),r=Math.floor(s%60);return m+':'+(r<10?'0'+r:r);}
+        audio.addEventListener('timeupdate',()=>{if(audio.duration){trackFill.style.width=Math.round((audio.currentTime/audio.duration)*100)+'%';}tCur.textContent=fmt(audio.currentTime);});
+        audio.addEventListener('loadedmetadata',()=>{tEnd.textContent=fmt(audio.duration);});
+        trackEl.addEventListener('click',function(e){if(!audio.duration)return;var r=this.getBoundingClientRect();audio.currentTime=((e.clientX-r.left)/r.width)*audio.duration;});
+        var volTrack=document.getElementById('volTrack'),volFill=document.getElementById('volFill'),volIcon=document.getElementById('volIcon');
+        function syncVol(){var pct=audio.muted?0:audio.volume*100;volFill.style.width=pct+'%';volIcon.className='bi '+(pct==0?'bi-volume-mute':(pct<50?'bi-volume-down':'bi-volume-up'));}
+        volTrack.addEventListener('click',function(e){var r=this.getBoundingClientRect();audio.volume=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width));audio.muted=false;});
+        volIcon.addEventListener('click',function(){audio.muted=!audio.muted;});
+        audio.addEventListener('volumechange',syncVol);
+        syncVol();
+        async function listen(btn){const response=await fetch('/Song/Listen/'+btn.dataset.id,{method:'POST'});if(response.status===403){modalText.textContent=btn.dataset.name+' şarkısı '+btn.dataset.package+' paketine ait. Mevcut paketiniz bu şarkıyı desteklememektedir.';modal.classList.add('show');return;}if(response.status===401){location.href='/Login/SignIn';return;}if(!response.ok)return;const data=await response.json();document.getElementById('nowName').textContent=data.songName||btn.dataset.name;document.getElementById('nowArtist').textContent=data.artistName||btn.dataset.artist;icon.className='bi bi-pause-fill';if(window.spaSetNowPlaying){window.spaSetNowPlaying(data.songName||btn.dataset.name,data.artistName||btn.dataset.artist);}currentIndex=playlist.findIndex(p=>p.id===btn.dataset.id);if(data.audioUrl){audio.src=data.audioUrl;audio.play().catch(()=>{});}}
         document.querySelectorAll('.listen').forEach(btn=>btn.addEventListener('click',()=>listen(btn))); document.getElementById('mainPlay').onclick=()=>{if(!audio.src)return;if(audio.paused){audio.play();icon.className='bi bi-pause-fill';}else{audio.pause();icon.className='bi bi-play-fill';}};
+
+        var playlist=cards.map(c=>{var el=c.querySelector('.listen');return el?{id:el.dataset.id,name:el.dataset.name,artist:el.dataset.artist,pkg:el.dataset.package}:null;}).filter(Boolean);
+        var currentIndex=-1;
+        function playAt(i){if(i<0||i>=playlist.length)return;var item=playlist[i];listen({dataset:{id:item.id,name:item.name,artist:item.artist,package:item.pkg}});}
+        var shuffleBtn=document.getElementById('shuffleBtn'),repeatBtn=document.getElementById('repeatBtn');
+        var shuffleOn=false,repeatOn=false;
+        shuffleBtn.addEventListener('click',()=>{shuffleOn=!shuffleOn;shuffleBtn.classList.toggle('active',shuffleOn);});
+        repeatBtn.addEventListener('click',()=>{repeatOn=!repeatOn;repeatBtn.classList.toggle('active',repeatOn);});
+        function pickNextIndex(){if(shuffleOn&&playlist.length>1){var i;do{i=Math.floor(Math.random()*playlist.length);}while(i===currentIndex);return i;}return currentIndex+1;}
+        document.getElementById('mainPrev').addEventListener('click',()=>playAt(currentIndex-1));
+        document.getElementById('mainNext').addEventListener('click',()=>playAt(pickNextIndex()));
+        audio.addEventListener('ended',()=>{if(repeatOn){audio.currentTime=0;audio.play().catch(()=>{});return;}playAt(pickNextIndex());});
 
         (function () {
             var STORAGE_KEY = 'echoaNowPlaying';

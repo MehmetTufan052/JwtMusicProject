@@ -40,5 +40,12 @@ namespace JwtMusicNight.WebUI.Controllers
             ViewBag.ErrorMessage = "Yanlış kullanıcı adı veya şifre.";
             return View();
         }
+
+        [HttpGet]
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("SignIn", "Login");
+        }
     }
 }

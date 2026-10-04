@@ -279,7 +279,26 @@
             place-items: center;
             font-size: .95rem;
             color: var(--txt-2);
+            cursor: pointer;
         }
+
+        .user-menu { position: relative; }
+        .user-dropdown {
+            position: absolute; top: calc(100% + 10px); right: 0; min-width: 180px;
+            background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px;
+            padding: 8px; display: none; flex-direction: column; gap: 4px; z-index: 50;
+            box-shadow: 0 16px 40px rgba(0,0,0,.4);
+        }
+        .user-dropdown.show { display: flex; }
+        .user-dropdown-pkg {
+            display: flex; align-items: center; gap: 7px; padding: 8px 10px;
+            font-size: .78rem; color: var(--txt-2); border-bottom: 1px solid var(--line); margin-bottom: 4px;
+        }
+        .user-dropdown-logout {
+            display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px;
+            font-size: .82rem; color: var(--txt); cursor: pointer;
+        }
+        .user-dropdown-logout:hover { background: var(--panel-3); color: var(--danger); }
 
         /* ---------- HERO ---------- */
         .hero {
@@ -1054,7 +1073,12 @@
                 {
                     <div class="pkg-pill"><i class="bi bi-gem"></i>@ViewBag.PackageName</div>
                 }
-                <div class="avatar-pill"><i class="bi bi-person-fill"></i></div>
+                <div class="user-menu" id="userMenu">
+                    <div class="avatar-pill" id="avatarBtn"><i class="bi bi-person-fill"></i></div>
+                    <div class="user-dropdown" id="userDropdown">
+                        <a class="user-dropdown-logout" href="/Login/Logout"><i class="bi bi-box-arrow-right"></i>Çıkış yap</a>
+                    </div>
+                </div>
             </div>
 
             <section class="hero">
@@ -1176,6 +1200,16 @@
         main.addEventListener('scroll', function () {
             topbar.classList.toggle('stuck', main.scrollTop > 8);
         });
+
+        var avatarBtn = document.getElementById('avatarBtn');
+        var userDropdown = document.getElementById('userDropdown');
+        if (avatarBtn && userDropdown) {
+            avatarBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                userDropdown.classList.toggle('show');
+            });
+            document.addEventListener('click', function () { userDropdown.classList.remove('show'); });
+        }
 
         var cards = Array.prototype.slice.call(document.querySelectorAll('#grid .card'));
         var empty = document.getElementById('empty');

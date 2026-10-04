@@ -158,7 +158,26 @@
         .avatar-pill {
             width: 32px; height: 32px; border-radius: 50%; background: var(--panel-3);
             display: grid; place-items: center; font-size: .95rem; color: var(--txt-2);
+            cursor: pointer;
         }
+
+        .user-menu { position: relative; }
+        .user-dropdown {
+            position: absolute; top: calc(100% + 10px); right: 0; min-width: 180px;
+            background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px;
+            padding: 8px; display: none; flex-direction: column; gap: 4px; z-index: 50;
+            box-shadow: 0 16px 40px rgba(0,0,0,.4);
+        }
+        .user-dropdown.show { display: flex; }
+        .user-dropdown-pkg {
+            display: flex; align-items: center; gap: 7px; padding: 8px 10px;
+            font-size: .78rem; color: var(--txt-2); border-bottom: 1px solid var(--line); margin-bottom: 4px;
+        }
+        .user-dropdown-logout {
+            display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px;
+            font-size: .82rem; color: var(--txt); cursor: pointer;
+        }
+        .user-dropdown-logout:hover { background: var(--panel-3); color: var(--danger); }
 
         .hero { position: relative; overflow: hidden; padding: 26px 24px 30px; }
 
@@ -336,6 +355,7 @@
         .pl-btns { display: flex; align-items: center; gap: 20px; }
         .pl-btns button { border: none; background: transparent; color: var(--txt-2); font-size: 1.05rem; cursor: pointer; }
         .pl-btns button:hover { color: var(--txt); }
+        .pl-btns button.active { color: var(--accent); }
 
         .pl-play {
             width: 36px; height: 36px; border-radius: 50%; background: var(--txt) !important; color: #000 !important;
@@ -472,7 +492,12 @@
                 </div>
                 <div class="spacer"></div>
                 <div class="pkg-pill"><i class="bi bi-gem"></i>@userPkg</div>
-                <div class="avatar-pill"><i class="bi bi-person-fill"></i></div>
+                <div class="user-menu" id="userMenu">
+                    <div class="avatar-pill" id="avatarBtn"><i class="bi bi-person-fill"></i></div>
+                    <div class="user-dropdown" id="userDropdown">
+                        <a class="user-dropdown-logout" href="/Login/Logout"><i class="bi bi-box-arrow-right"></i>Çıkış yap</a>
+                    </div>
+                </div>
             </div>
 
             <section class="hero">
@@ -623,11 +648,11 @@
             </div>
             <div class="pl-center">
                 <div class="pl-btns">
-                    <button aria-label="Karıştır"><i class="bi bi-shuffle"></i></button>
-                    <button aria-label="Önceki"><i class="bi bi-skip-start-fill"></i></button>
+                    <button id="shuffleBtn" aria-label="Karıştır"><i class="bi bi-shuffle"></i></button>
+                    <button id="plPrev" aria-label="Önceki"><i class="bi bi-skip-start-fill"></i></button>
                     <button class="pl-play" id="plPlay" aria-label="Çal"><i class="bi bi-play-fill" id="plIcon"></i></button>
-                    <button aria-label="Sonraki"><i class="bi bi-skip-end-fill"></i></button>
-                    <button aria-label="Tekrarla"><i class="bi bi-repeat"></i></button>
+                    <button id="plNext" aria-label="Sonraki"><i class="bi bi-skip-end-fill"></i></button>
+                    <button id="repeatBtn" aria-label="Tekrarla"><i class="bi bi-repeat"></i></button>
                 </div>
                 <div class="pl-bar">
                     <span id="tCur">0:00</span>
@@ -636,8 +661,8 @@
                 </div>
             </div>
             <div class="pl-right">
-                <i class="bi bi-volume-up"></i>
-                <div class="vol"><div class="vol-fill"></div></div>
+                <i class="bi bi-volume-up" id="volIcon"></i>
+                <div class="vol" id="volTrack"><div class="vol-fill" id="volFill"></div></div>
             </div>
         </div>
 
@@ -667,6 +692,16 @@
         main.addEventListener('scroll', function () {
             topbar.classList.toggle('stuck', main.scrollTop > 8);
         });
+
+        var avatarBtn = document.getElementById('avatarBtn');
+        var userDropdown = document.getElementById('userDropdown');
+        if (avatarBtn && userDropdown) {
+            avatarBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                userDropdown.classList.toggle('show');
+            });
+            document.addEventListener('click', function () { userDropdown.classList.remove('show'); });
+        }
 
         var rows = Array.prototype.slice.call(document.querySelectorAll('#grid .trow'));
         var empty = document.getElementById('empty');
@@ -714,43 +749,103 @@
         var npSub = document.getElementById('npSub');
         var plPlay = document.getElementById('plPlay');
         var plIcon = document.getElementById('plIcon');
+        var trackEl = document.getElementById('track');
         var trackFill = document.getElementById('trackFill');
         var tCur = document.getElementById('tCur');
-
-        var playing = false, seconds = 0, total = 200, timer = null;
+        var tEnd = document.getElementById('tEnd');
+        var plPrev = document.getElementById('plPrev');
+        var plNext = document.getElementById('plNext');
 
         function fmt(s) {
             var m = Math.floor(s / 60), r = Math.floor(s % 60);
             return m + ':' + (r < 10 ? '0' + r : r);
         }
 
-        function render() {
-            trackFill.style.width = Math.round((seconds / total) * 100) + '%';
-            tCur.textContent = fmt(seconds);
-        }
-
         function setPlaying(on) {
-            playing = on;
             eq.classList.toggle('on', on);
             npArt.classList.toggle('spin', on);
             plIcon.className = on ? 'bi bi-pause-fill' : 'bi bi-play-fill';
-            clearInterval(timer);
-            if (on) {
-                timer = setInterval(function () {
-                    seconds++;
-                    if (seconds >= total) { seconds = 0; }
-                    render();
-                }, 1000);
-            }
         }
 
-        plPlay.addEventListener('click', function () { setPlaying(!playing); });
-
-        document.getElementById('track').addEventListener('click', function (e) {
-            var r = this.getBoundingClientRect();
-            seconds = Math.round(((e.clientX - r.left) / r.width) * total);
-            render();
+        audio.addEventListener('play', function () { setPlaying(true); });
+        audio.addEventListener('pause', function () { setPlaying(false); });
+        audio.addEventListener('timeupdate', function () {
+            if (audio.duration) { trackFill.style.width = Math.round((audio.currentTime / audio.duration) * 100) + '%'; }
+            tCur.textContent = fmt(audio.currentTime);
         });
+        audio.addEventListener('loadedmetadata', function () { tEnd.textContent = fmt(audio.duration); });
+
+        var shuffleBtn = document.getElementById('shuffleBtn');
+        var repeatBtn = document.getElementById('repeatBtn');
+        var shuffleOn = false, repeatOn = false;
+
+        shuffleBtn.addEventListener('click', function () {
+            shuffleOn = !shuffleOn;
+            shuffleBtn.classList.toggle('active', shuffleOn);
+        });
+        repeatBtn.addEventListener('click', function () {
+            repeatOn = !repeatOn;
+            repeatBtn.classList.toggle('active', repeatOn);
+        });
+
+        function pickNextIndex() {
+            if (shuffleOn && playlist.length > 1) {
+                var i;
+                do { i = Math.floor(Math.random() * playlist.length); } while (i === currentIndex);
+                return i;
+            }
+            return currentIndex + 1;
+        }
+
+        audio.addEventListener('ended', function () {
+            if (repeatOn) { audio.currentTime = 0; audio.play().catch(function () { }); return; }
+            playAt(pickNextIndex());
+        });
+
+        plPlay.addEventListener('click', function () {
+            if (!audio.src) { return; }
+            if (audio.paused) { audio.play().catch(function () { }); } else { audio.pause(); }
+        });
+
+        trackEl.addEventListener('click', function (e) {
+            if (!audio.duration) { return; }
+            var r = this.getBoundingClientRect();
+            audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
+        });
+
+        var volTrack = document.getElementById('volTrack');
+        var volFill = document.getElementById('volFill');
+        var volIcon = document.getElementById('volIcon');
+
+        function syncVol() {
+            var pct = audio.muted ? 0 : audio.volume * 100;
+            volFill.style.width = pct + '%';
+            volIcon.className = 'bi ' + (pct == 0 ? 'bi-volume-mute' : (pct < 50 ? 'bi-volume-down' : 'bi-volume-up'));
+        }
+
+        volTrack.addEventListener('click', function (e) {
+            var r = this.getBoundingClientRect();
+            audio.volume = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+            audio.muted = false;
+        });
+        volIcon.addEventListener('click', function () { audio.muted = !audio.muted; });
+        audio.addEventListener('volumechange', syncVol);
+        syncVol();
+
+        var playlist = rows.map(function (row) {
+            var el = row.querySelector('.listen');
+            return el ? { id: el.dataset.id, name: el.dataset.name, artist: el.dataset.artist, pkg: el.dataset.pkg } : null;
+        }).filter(Boolean);
+        var currentIndex = -1;
+
+        function playAt(i) {
+            if (i < 0 || i >= playlist.length) { return; }
+            var item = playlist[i];
+            requestListen(item.id, item.name, item.artist, item.pkg);
+        }
+
+        plPrev.addEventListener('click', function () { playAt(currentIndex - 1); });
+        plNext.addEventListener('click', function () { playAt(pickNextIndex()); });
 
         async function requestListen(id, name, artist, pkg) {
             var res = await fetch('/Song/Listen/' + id, { method: 'POST' });
@@ -771,9 +866,8 @@
             var data = await res.json();
             npName.textContent = data.songName || name;
             npSub.textContent = data.artistName || artist;
-            seconds = 0;
-            render();
-            setPlaying(true);
+            if (window.spaSetNowPlaying) { window.spaSetNowPlaying(data.songName || name, data.artistName || artist); }
+            currentIndex = playlist.findIndex(function (p) { return p.id === String(id); });
 
             if (data.audioUrl) {
                 audio.src = data.audioUrl;
@@ -797,8 +891,6 @@
             });
             row.style.cursor = 'pointer';
         });
-
-        render();
 
         (function () {
             var STORAGE_KEY = 'echoaNowPlaying';

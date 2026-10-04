@@ -38,6 +38,8 @@ namespace JwtMusicNight.WebUI.Controllers
             var jsonData = await responseMessage.Content.ReadAsStringAsync();
             var values = JsonConvert.DeserializeObject<List<ResultArtistDto>>(jsonData);
 
+            ViewBag.PackageName = HttpContext.Session.GetString("PackageName") ?? "Basic";
+
             return View(values);
         }
 

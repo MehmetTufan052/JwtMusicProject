@@ -600,6 +600,7 @@
             var data = await res.json();
             npName.textContent = data.songName || name;
             npSub.textContent = data.artistName || artist;
+            if (window.spaSetNowPlaying) { window.spaSetNowPlaying(data.songName || name, data.artistName || artist); }
 
             if (data.audioUrl) {
                 audio.src = data.audioUrl;
