@@ -1,0 +1,45 @@
+@model JwtMusicNight.WebUI.Models.AdminSongsViewModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Şarkı Yönetimi";
+    ViewData["AdminPage"] = "Songs";
+    var editing = Model.EditingSong;
+}
+<header class="admin-heading">
+    <div><div class="admin-kicker">Müzik kataloğu</div><h1>Şarkılar</h1><p>Echoa kataloğundaki parçaları, erişim paketlerini ve yayın bilgilerini yönet.</p></div>
+    <span class="admin-count"><i class="bi bi-music-note-beamed"></i> @Model.Songs.Count şarkı</span>
+</header>
+<section class="admin-card">
+    <div class="admin-card-head"><h2 class="admin-card-title"><i class="bi bi-music-note-list"></i>@(editing != null ? "Şarkıyı düzenle" : "Yeni şarkı ekle")</h2>@if (editing != null) { <span class="admin-edit-badge">Düzenleme modu</span> }</div>
+    <form asp-controller="Admin" asp-action="@(editing != null ? "EditSong" : "CreateSong")" method="post" class="admin-form-grid" id="songForm">
+        @if (editing != null) { <input type="hidden" name="id" value="@editing.SongId" /> }
+        <div class="field"><label for="songName">Şarkı adı</label><input id="songName" type="text" name="SongName" class="admin-input" value="@(editing?.SongName)" placeholder="Şarkı adı" required /></div>
+        <div class="field"><label for="artistId">Sanatçı</label><select id="artistId" name="ArtistId" class="admin-select" required>@foreach (var artist in Model.Artists) { <option value="@artist.ArtistId" selected="@(editing != null && editing.ArtistId == artist.ArtistId)">@artist.ArtistName</option> }</select></div>
+        <div class="field"><label for="genreId">Müzik türü</label><select id="genreId" name="GenreId" class="admin-select" required>@foreach (var genre in Model.Genres) { <option value="@genre.GenreId">@genre.GenreName</option> }</select></div>
+        <div class="field quarter"><label for="packageId">Erişim paketi</label><select id="packageId" name="PackageId" class="admin-select" required>@foreach (var package in Model.Packages) { <option value="@package.PackageId" selected="@(editing != null && editing.PackageLevel == package.Level)">@package.PackageName</option> }</select></div>
+        <div class="field quarter"><label for="durationInput">Süre (dk:sn)</label><input type="text" id="durationInput" class="admin-input" value="@(editing != null ? editing.Duration.ToString(@"mm\:ss") : "")" placeholder="03:24" inputmode="numeric" required /><input type="hidden" name="Duration" id="durationHidden" /></div>
+        <div class="field quarter"><label for="releaseDate">Çıkış tarihi</label><input id="releaseDate" type="date" name="ReleaseDate" class="admin-input" value="@(editing != null ? editing.ReleaseDate.ToString("yyyy-MM-dd") : "")" required /></div>
+        <div class="field quarter"><label for="coverUrl">Kapak görseli URL</label><input id="coverUrl" type="text" name="CoverImageUrl" class="admin-input" value="@(editing?.CoverImageUrl)" placeholder="https://..." /></div>
+        <div class="field half"><label for="audioUrl">Ses dosyası adı</label><input id="audioUrl" type="text" name="AudioUrl" class="admin-input" placeholder="@(editing != null ? "Boş bırakırsan değişmez" : "sarki.mp3")" required="@(editing == null)" /></div>
+        <div class="field half"><label for="lyrics">Şarkı sözleri</label><textarea id="lyrics" name="Lyrics" class="admin-textarea" placeholder="Opsiyonel şarkı sözleri..."></textarea></div>
+        <input type="hidden" name="ListenCount" value="@(editing?.ListenCount ?? 0)" />
+        <div class="admin-actions"><button type="submit" class="admin-btn admin-btn-primary"><i class="bi bi-check2"></i>@(editing != null ? "Değişiklikleri kaydet" : "Şarkı ekle")</button>@if (editing != null) { <a asp-controller="Admin" asp-action="Songs" class="admin-btn admin-btn-secondary">Vazgeç</a> }</div>
+    </form>
+</section>
+<section class="admin-table-card">
+    <div class="admin-table-head"><h2>Şarkı kataloğu</h2><span>Yayınlanan parçalar ve erişim seviyeleri</span></div>
+    @if (Model.Songs.Count == 0) { <div class="admin-empty"><i class="bi bi-music-note-beamed"></i>Henüz şarkı eklenmedi.</div> }
+    else { <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Şarkı</th><th>Sanatçı</th><th>Tür</th><th>Paket</th><th>Süre</th><th></th></tr></thead><tbody>
+        @foreach (var song in Model.Songs) { <tr><td>@song.SongName</td><td>@song.ArtistName</td><td><span class="admin-pill">@song.GenreName</span></td><td><span class="admin-pill ok"><i class="bi bi-gem"></i>@song.PackageName</span></td><td>@song.Duration.ToString(@"mm\:ss")</td><td><div class="admin-row-actions"><a asp-controller="Admin" asp-action="Songs" asp-route-editId="@song.SongId" class="admin-btn admin-btn-secondary admin-btn-small"><i class="bi bi-pencil"></i>Düzenle</a><form asp-controller="Admin" asp-action="DeleteSong" method="post" onsubmit="return confirm('Bu şarkıyı silmek istediğine emin misin?');"><input type="hidden" name="id" value="@song.SongId" /><button type="submit" class="admin-btn admin-btn-danger admin-btn-small"><i class="bi bi-trash3"></i>Sil</button></form></div></td></tr> }
+    </tbody></table></div> }
+</section>
+@section Scripts {
+    <script>
+        document.getElementById('songForm').addEventListener('submit', function () {
+            const parts = (document.getElementById('durationInput').value || '0:00').split(':');
+            const minutes = parseInt(parts[0], 10) || 0;
+            const seconds = parseInt(parts[1], 10) || 0;
+            document.getElementById('durationHidden').value = '00:' + String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+        });
+    </script>
+}

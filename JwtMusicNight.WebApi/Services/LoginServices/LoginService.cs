@@ -43,11 +43,14 @@ namespace JwtMusicNight.WebApi.Services.LoginServices
             var package = await _context.Packages
                 .FirstOrDefaultAsync(p => p.PackageId == user.PackageId);
 
+            var roles = await _userManager.GetRolesAsync(user);
+
             return new LoginResponseDto
             {
                 Token = await GenerateToken(user, package),
                 PackageName = package.PackageName,
-                PackageLevel = package.Level
+                PackageLevel = package.Level,
+                IsAdmin = roles.Contains("Admin")
             };
         }
 

@@ -1,4 +1,5 @@
-﻿using JwtMusicNight.WebApi.Services.SongServices;
+﻿using JwtMusicNight.WebApi.Dtos;
+using JwtMusicNight.WebApi.Services.SongServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -163,6 +164,38 @@ namespace JwtMusicNight.WebApi.Controllers
             var appUserId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             var values = await _songService.GetFavoritesAsync(appUserId);
             return Ok(values);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateSong(CreateSongDto createSongDto)
+        {
+            var value = await _songService.CreateSongAsync(createSongDto);
+            return Ok(value);
+        }
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateSong(int id, CreateSongDto createSongDto)
+        {
+            var success = await _songService.UpdateSongAsync(id, createSongDto);
+            if (!success)
+            {
+                return NotFound("Sarki bulunamadi.");
+            }
+            return Ok();
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteSong(int id)
+        {
+            var success = await _songService.DeleteSongAsync(id);
+            if (!success)
+            {
+                return NotFound("Sarki bulunamadi.");
+            }
+            return Ok();
         }
     }
 }

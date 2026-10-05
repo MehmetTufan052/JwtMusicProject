@@ -42,6 +42,7 @@ namespace JwtMusicNight.WebUI.Controllers
             var favorites = JsonConvert.DeserializeObject<List<ResultSongDto>>(favoritesJson) ?? new();
 
             ViewBag.PackageName = HttpContext.Session.GetString("PackageName") ?? "Basic";
+            ViewBag.IsAdmin = HttpContext.Session.GetString("IsAdmin") == "True";
             ViewBag.PackageLevel = HttpContext.Session.GetInt32("PackageLevel") ?? 0;
             ViewBag.FavoriteSongIds = favorites.Select(f => f.SongId).ToHashSet();
 
@@ -170,6 +171,7 @@ namespace JwtMusicNight.WebUI.Controllers
             var songs = JsonConvert.DeserializeObject<List<ResultSongDto>>(json) ?? new();
 
             ViewBag.PackageName = HttpContext.Session.GetString("PackageName") ?? "Basic";
+            ViewBag.IsAdmin = HttpContext.Session.GetString("IsAdmin") == "True";
             ViewBag.PackageLevel = HttpContext.Session.GetInt32("PackageLevel") ?? 0;
 
             return View(songs);
@@ -192,6 +194,7 @@ namespace JwtMusicNight.WebUI.Controllers
             var history = JsonConvert.DeserializeObject<List<ListeningHistoryDto>>(json) ?? new();
 
             ViewBag.PackageName = HttpContext.Session.GetString("PackageName") ?? "Basic";
+            ViewBag.IsAdmin = HttpContext.Session.GetString("IsAdmin") == "True";
 
             return View(history);
         }

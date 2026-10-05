@@ -203,6 +203,36 @@
         .fav-btn:hover { color: #f43f5e; border-color: #f43f5e; }
         .fav-btn.on { color: #f43f5e; border-color: #f43f5e; }
 
+        .add-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 50px; height: 50px; border-radius: 50%; border: 1px solid var(--line);
+            background: transparent; color: var(--txt-2); font-size: 1.2rem; cursor: pointer;
+            margin-left: 10px; transition: color .18s, border-color .18s;
+        }
+        .add-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+        .add-popup {
+            position: fixed; z-index: 200; min-width: 200px; max-width: 240px;
+            background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px;
+            padding: 8px; box-shadow: 0 16px 40px rgba(0,0,0,.5);
+        }
+        .add-popup-item {
+            padding: 8px 10px; border-radius: 8px; font-size: .85rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: space-between; gap: 8px;
+        }
+        .add-popup-item:hover { background: var(--panel-3); }
+        .add-popup-count { color: var(--txt-3); font-size: .74rem; }
+        .add-popup-empty { padding: 8px 10px; font-size: .8rem; color: var(--txt-3); }
+        .add-popup-new { display: flex; gap: 6px; margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--line); }
+        .add-popup-new input {
+            flex: 1; min-width: 0; height: 32px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line);
+            background: var(--panel-3); color: var(--txt); font-family: inherit; font-size: .8rem; outline: none;
+        }
+        .add-popup-new button {
+            height: 32px; padding: 0 10px; border: none; border-radius: 8px; cursor: pointer;
+            background: var(--accent); color: #fff; font-family: inherit; font-size: .78rem; font-weight: 700;
+        }
+
         .sec-title {
             font-size: 1.3rem;
             font-weight: 800;
@@ -501,6 +531,9 @@
                 <button class="fav-btn @(Model.IsFavorited ? "on" : "")" id="favBtn" type="button" data-id="@s.SongId" aria-label="Beğen">
                     <i class="bi @(Model.IsFavorited ? "bi-heart-fill" : "bi-heart")" id="favIcon"></i>
                 </button>
+                <button class="add-btn" id="addBtn" type="button" data-id="@s.SongId" aria-label="Çalma listesine ekle">
+                    <i class="bi bi-plus-circle"></i>
+                </button>
             </div>
         </div>
 
@@ -639,6 +672,59 @@
             } finally {
                 favBtn.disabled = false;
             }
+        });
+
+        var addBtn = document.getElementById('addBtn');
+        var addPopup = null;
+        function closeAddPopup() { if (addPopup) { addPopup.remove(); addPopup = null; } }
+        document.addEventListener('click', function (e) {
+            if (addPopup && !addPopup.contains(e.target) && e.target !== addBtn && !addBtn.contains(e.target)) { closeAddPopup(); }
+        });
+
+        addBtn.addEventListener('click', async function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeAddPopup();
+            var songId = addBtn.dataset.id;
+            var rect = addBtn.getBoundingClientRect();
+
+            var res = await fetch('/Playlist/GetMine');
+            if (res.status === 401) { window.location.href = '/Login/SignIn'; return; }
+            var playlists = res.ok ? await res.json() : [];
+
+            var pop = document.createElement('div');
+            pop.className = 'add-popup';
+            pop.style.top = (rect.bottom + 6) + 'px';
+            pop.style.left = Math.min(rect.left, window.innerWidth - 250) + 'px';
+
+            var listHtml = playlists.length
+                ? playlists.map(function (p) {
+                    return '<div class="add-popup-item" data-pid="' + p.playlistId + '"><span>' + p.name + '</span><span class="add-popup-count">' + p.songCount + '</span></div>';
+                }).join('')
+                : '<div class="add-popup-empty">Henüz listen yok</div>';
+
+            pop.innerHTML = listHtml +
+                '<div class="add-popup-new"><input type="text" placeholder="Yeni liste adı" id="newPlName" /><button type="button" id="newPlBtn">Oluştur</button></div>';
+
+            document.body.appendChild(pop);
+            addPopup = pop;
+
+            pop.querySelectorAll('.add-popup-item').forEach(function (item) {
+                item.addEventListener('click', async function () {
+                    await fetch('/Playlist/AddSong?playlistId=' + this.dataset.pid + '&songId=' + songId, { method: 'POST' });
+                    closeAddPopup();
+                });
+            });
+
+            document.getElementById('newPlBtn').addEventListener('click', async function () {
+                var name = document.getElementById('newPlName').value.trim();
+                if (!name) { return; }
+                var createRes = await fetch('/Playlist/Create?name=' + encodeURIComponent(name), { method: 'POST' });
+                if (!createRes.ok) { return; }
+                var newPl = await createRes.json();
+                await fetch('/Playlist/AddSong?playlistId=' + newPl.playlistId + '&songId=' + songId, { method: 'POST' });
+                closeAddPopup();
+            });
         });
 
         document.querySelectorAll('.rec-listen').forEach(function (el) {

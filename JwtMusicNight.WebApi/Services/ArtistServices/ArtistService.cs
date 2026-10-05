@@ -64,6 +64,38 @@ namespace JwtMusicNight.WebApi.Services.ArtistServices
                 .AnyAsync(f => f.AppUserId == appUserId && f.ArtistId == artistId);
         }
 
+        public async Task<bool> UpdateArtistAsync(int id, CreateArtistDto createArtistDto)
+        {
+            var artist = await _context.Artists.FirstOrDefaultAsync(a => a.ArtistId == id);
+            if (artist == null)
+            {
+                return false;
+            }
+
+            artist.ArtistName = createArtistDto.ArtistName;
+            artist.ArtistImageUrl = createArtistDto.ArtistImageUrl;
+            artist.CoverImageUrl = createArtistDto.CoverImageUrl;
+            artist.Bio = createArtistDto.Bio;
+            artist.Country = createArtistDto.Country;
+            artist.IsVerified = createArtistDto.IsVerified;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteArtistAsync(int id)
+        {
+            var artist = await _context.Artists.FirstOrDefaultAsync(a => a.ArtistId == id);
+            if (artist == null)
+            {
+                return false;
+            }
+
+            _context.Artists.Remove(artist);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<List<ResultArtistDto>> GetFollowedArtistsAsync(string appUserId)
         {
             var artists = await _context.ArtistFollows

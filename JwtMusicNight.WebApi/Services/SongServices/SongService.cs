@@ -139,6 +139,60 @@ namespace JwtMusicNight.WebApi.Services.SongServices
             return _mapper.Map<List<ResultSongDto>>(songs);
         }
 
+        public async Task<ResultSongDto> CreateSongAsync(CreateSongDto createSongDto)
+        {
+            var song = _mapper.Map<Song>(createSongDto);
+            await _context.Songs.AddAsync(song);
+            await _context.SaveChangesAsync();
+
+            var created = await _context.Songs
+                .Include(s => s.Artist)
+                .Include(s => s.Genre)
+                .Include(s => s.Package)
+                .FirstAsync(s => s.SongId == song.SongId);
+
+            return _mapper.Map<ResultSongDto>(created);
+        }
+
+        public async Task<bool> UpdateSongAsync(int id, CreateSongDto createSongDto)
+        {
+            var song = await _context.Songs.FirstOrDefaultAsync(s => s.SongId == id);
+            if (song == null)
+            {
+                return false;
+            }
+
+            song.SongName = createSongDto.SongName;
+            song.CoverImageUrl = createSongDto.CoverImageUrl;
+            if (!string.IsNullOrWhiteSpace(createSongDto.AudioUrl))
+            {
+                song.AudioUrl = createSongDto.AudioUrl;
+            }
+            song.Duration = createSongDto.Duration;
+            song.ListenCount = createSongDto.ListenCount;
+            song.ReleaseDate = createSongDto.ReleaseDate;
+            song.Lyrics = createSongDto.Lyrics;
+            song.ArtistId = createSongDto.ArtistId;
+            song.GenreId = createSongDto.GenreId;
+            song.PackageId = createSongDto.PackageId;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteSongAsync(int id)
+        {
+            var song = await _context.Songs.FirstOrDefaultAsync(s => s.SongId == id);
+            if (song == null)
+            {
+                return false;
+            }
+
+            _context.Songs.Remove(song);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<List<ResultSongDto>> GetRecommendationsAsync(int songId, int count = 5)
         {
             var current = await _context.Songs.FindAsync(songId);

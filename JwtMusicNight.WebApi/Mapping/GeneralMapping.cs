@@ -20,6 +20,15 @@ namespace JwtMusicNight.WebApi.Mapping
             CreateMap<Artist, CreateArtistDto>().ReverseMap();
 
             CreateMap<Genre, ResultGenreDto>().ReverseMap();
+            CreateMap<Genre, CreateGenreDto>().ReverseMap();
+
+            CreateMap<Package, ResultPackageDto>();
+
+            CreateMap<Playlist, ResultPlaylistDto>()
+                .ForMember(dest => dest.SongCount, opt => opt.MapFrom(src => src.PlaylistSongs.Count));
+
+            CreateMap<Playlist, PlaylistDetailDto>()
+                .ForMember(dest => dest.Songs, opt => opt.MapFrom(src => src.PlaylistSongs.Select(ps => ps.Song)));
 
             CreateMap<ListeningHistory, ListeningHistoryDto>()
                 .ForMember(dest => dest.SongName, opt => opt.MapFrom(src => src.Song.SongName))

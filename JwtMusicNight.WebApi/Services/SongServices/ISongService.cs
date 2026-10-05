@@ -16,5 +16,8 @@ namespace JwtMusicNight.WebApi.Services.SongServices
         Task<bool> ToggleFavoriteAsync(string appUserId, int songId);
         Task<bool> IsFavoritedAsync(string appUserId, int songId);
         Task<List<ResultSongDto>> GetFavoritesAsync(string appUserId);
+        Task<ResultSongDto> CreateSongAsync(CreateSongDto createSongDto);
+        Task<bool> UpdateSongAsync(int id, CreateSongDto createSongDto);
+        Task<bool> DeleteSongAsync(int id);
     }
 }

@@ -1,8 +1,10 @@
 ﻿using JwtMusicNight.WebApi.Context;
 using JwtMusicNight.WebApi.Entities;
+using JwtMusicNight.WebApi.Services.AdminServices;
 using JwtMusicNight.WebApi.Services.ArtistServices;
 using JwtMusicNight.WebApi.Services.GenreServices;
 using JwtMusicNight.WebApi.Services.LoginServices;
+using JwtMusicNight.WebApi.Services.PlaylistServices;
 using JwtMusicNight.WebApi.Services.RegisterServices;
 using JwtMusicNight.WebApi.Services.SongServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -41,6 +43,8 @@ builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<IRegisterService, RegisterService>();
 builder.Services.AddScoped<ISongService, SongService>();
 builder.Services.AddScoped<IGenreService, GenreService>();
+builder.Services.AddScoped<IPlaylistService, PlaylistService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddDbContext<JwtContext>();
 
 

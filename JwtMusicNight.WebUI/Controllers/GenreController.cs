@@ -45,6 +45,8 @@ namespace JwtMusicNight.WebUI.Controllers
                 UserPackageLevel = HttpContext.Session.GetInt32("PackageLevel") ?? 0
             };
 
+            ViewBag.IsAdmin = HttpContext.Session.GetString("IsAdmin") == "True";
+
             return View(model);
         }
     }

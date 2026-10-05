@@ -1,0 +1,166 @@
+@{
+    Layout = null;
+    ViewData["Title"] = "Yönetim Merkezi – Echoa";
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Echoa içerik ve kullanıcı yönetim merkezi." />
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+        :root { --bg:#000; --panel:#121212; --panel-2:#181818; --panel-3:#232323; --line:rgba(255,255,255,.09); --text:#fff; --muted:#aaa9b7; --muted-2:#6f6e79; --purple:#a855f7; --pink:#ec4899; --green:#53e3a6; --rail:244px; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        html,body { min-height:100%; }
+        body { background:var(--bg); color:var(--text); font-family:'Figtree',system-ui,sans-serif; }
+        a { color:inherit; text-decoration:none; }
+        button { font:inherit; }
+        .shell { min-height:100vh; display:grid; grid-template-columns:var(--rail) minmax(0,1fr); gap:8px; padding:8px; }
+        .sidebar { position:sticky; top:8px; height:calc(100vh - 16px); display:flex; flex-direction:column; padding:18px 12px; border-radius:12px; background:var(--panel); }
+        .brand { display:flex; align-items:center; gap:10px; padding:2px 9px 25px; font-size:1.2rem; font-weight:900; letter-spacing:-.6px; }
+        .brand-mark { width:29px; height:29px; display:grid; place-items:center; border-radius:50%; background:linear-gradient(135deg,var(--purple),var(--pink)); box-shadow:0 0 24px rgba(168,85,247,.38); font-size:.92rem; }
+        .nav-label { padding:0 10px 9px; color:var(--muted-2); font-size:.67rem; font-weight:800; letter-spacing:1.6px; text-transform:uppercase; }
+        .nav { display:grid; gap:4px; }
+        .nav-item { position:relative; display:flex; align-items:center; gap:13px; min-height:44px; padding:0 11px; border-radius:8px; color:var(--muted); font-size:.9rem; font-weight:650; transition:.18s ease; }
+        .nav-item i { width:21px; font-size:1.12rem; text-align:center; }
+        .nav-item:hover,.nav-item.active { color:#fff; background:var(--panel-3); }
+        .nav-item.active::before { content:''; position:absolute; left:-3px; width:3px; height:24px; border-radius:5px; background:linear-gradient(var(--purple),var(--pink)); }
+        .sidebar-foot { margin-top:auto; padding-top:16px; border-top:1px solid var(--line); }
+        .admin-chip { display:flex; align-items:center; gap:10px; padding:7px 9px 15px; }
+        .avatar { width:37px; height:37px; display:grid; place-items:center; flex:0 0 auto; border-radius:50%; background:linear-gradient(135deg,#3b1d5e,#9d2770); font-weight:800; }
+        .admin-chip strong,.admin-chip small { display:block; }
+        .admin-chip strong { font-size:.84rem; }
+        .admin-chip small { margin-top:2px; color:var(--muted-2); font-size:.7rem; }
+        .logout { color:#fda4af; }
+        .mobile-toggle { display:none; }
+        .main { min-width:0; overflow:hidden; border-radius:12px; background:var(--panel); }
+        .topbar { height:70px; display:flex; align-items:center; gap:15px; padding:0 30px; border-bottom:1px solid var(--line); background:rgba(18,18,18,.88); backdrop-filter:blur(16px); }
+        .page-name { font-size:.87rem; font-weight:700; }
+        .topbar-spacer { flex:1; }
+        .status { display:flex; align-items:center; gap:8px; padding:8px 12px; border:1px solid var(--line); border-radius:50px; color:var(--muted); font-size:.76rem; font-weight:700; }
+        .status-dot { width:7px; height:7px; border-radius:50%; background:var(--green); box-shadow:0 0 12px rgba(83,227,166,.85); }
+        .site-link { width:36px; height:36px; display:grid; place-items:center; border-radius:50%; background:var(--panel-3); color:var(--muted); transition:.18s; }
+        .site-link:hover { color:#fff; transform:translateY(-2px); }
+        .content { width:min(1240px,100%); margin:0 auto; padding:34px 34px 54px; }
+        .hero { position:relative; overflow:hidden; min-height:280px; display:flex; align-items:flex-end; padding:38px; border:1px solid var(--line); border-radius:22px; background:linear-gradient(130deg,#1a1022 0%,#151217 52%,#121212 100%); }
+        .hero::before,.hero::after { content:''; position:absolute; border-radius:50%; filter:blur(70px); pointer-events:none; }
+        .hero::before { width:330px; height:330px; left:-95px; top:-160px; background:rgba(168,85,247,.45); }
+        .hero::after { width:270px; height:270px; right:-60px; bottom:-160px; background:rgba(236,72,153,.35); }
+        .hero-copy { position:relative; z-index:2; max-width:680px; }
+        .eyebrow { display:inline-flex; align-items:center; gap:7px; margin-bottom:17px; color:#d8b4fe; font-size:.72rem; font-weight:800; letter-spacing:1.7px; text-transform:uppercase; }
+        .eyebrow i { font-size:.85rem; }
+        h1 { max-width:650px; font-size:clamp(2.3rem,5vw,4.3rem); line-height:.98; letter-spacing:-3px; font-weight:900; }
+        .gradient { color:transparent; background:linear-gradient(100deg,#c084fc,#f472b6); background-clip:text; -webkit-background-clip:text; }
+        .hero p { max-width:610px; margin-top:17px; color:var(--muted); font-size:.95rem; line-height:1.65; }
+        .hero-symbol { position:absolute; z-index:1; right:54px; top:40px; width:180px; height:180px; display:grid; place-items:center; border:1px solid rgba(255,255,255,.1); border-radius:50%; background:rgba(255,255,255,.035); box-shadow:inset 0 0 0 24px rgba(255,255,255,.018),0 30px 80px rgba(0,0,0,.35); font-size:4.8rem; color:rgba(255,255,255,.82); transform:rotate(-8deg); }
+        .section-head { display:flex; align-items:end; justify-content:space-between; gap:20px; margin:34px 0 17px; }
+        .section-head h2 { font-size:1.35rem; letter-spacing:-.55px; }
+        .section-head p { color:var(--muted-2); font-size:.78rem; }
+        .management-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+        .management-card { position:relative; overflow:hidden; min-height:230px; display:flex; flex-direction:column; padding:23px; border:1px solid var(--line); border-radius:17px; background:linear-gradient(155deg,rgba(255,255,255,.055),rgba(255,255,255,.018)); transition:transform .24s,border-color .24s,background .24s; }
+        .management-card::after { content:''; position:absolute; width:130px; height:130px; right:-65px; top:-65px; border-radius:50%; background:var(--glow); filter:blur(33px); opacity:.5; transition:opacity .2s; }
+        .management-card:hover { transform:translateY(-5px); border-color:rgba(255,255,255,.22); background:linear-gradient(155deg,rgba(255,255,255,.075),rgba(255,255,255,.025)); }
+        .management-card:hover::after { opacity:.9; }
+        .card-icon { width:47px; height:47px; display:grid; place-items:center; border-radius:14px; background:rgba(255,255,255,.08); font-size:1.3rem; }
+        .management-card h3 { margin-top:30px; font-size:1.16rem; letter-spacing:-.35px; }
+        .management-card p { margin-top:8px; color:var(--muted); font-size:.8rem; line-height:1.55; }
+        .card-action { display:flex; align-items:center; justify-content:space-between; margin-top:auto; padding-top:20px; color:#ddd; font-size:.76rem; font-weight:800; }
+        .card-action i { width:30px; height:30px; display:grid; place-items:center; border-radius:50%; background:rgba(255,255,255,.08); transition:transform .2s,background .2s; }
+        .management-card:hover .card-action i { transform:translateX(3px); background:rgba(255,255,255,.15); }
+        .quick-grid { display:grid; grid-template-columns:1.3fr .7fr; gap:14px; }
+        .quick-panel { padding:23px; border:1px solid var(--line); border-radius:17px; background:rgba(255,255,255,.025); }
+        .quick-panel h3 { font-size:1rem; }
+        .quick-panel > p { margin-top:6px; color:var(--muted-2); font-size:.78rem; }
+        .quick-actions { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:19px; }
+        .quick-action { display:flex; align-items:center; gap:10px; min-height:53px; padding:0 14px; border:1px solid var(--line); border-radius:11px; background:var(--panel-2); font-size:.79rem; font-weight:750; transition:.18s; }
+        .quick-action i { color:#d8b4fe; font-size:1rem; }
+        .quick-action:hover { border-color:rgba(192,132,252,.42); background:var(--panel-3); transform:translateY(-2px); }
+        .system-row { display:flex; align-items:center; gap:12px; margin-top:20px; }
+        .system-icon { width:42px; height:42px; display:grid; place-items:center; flex:0 0 auto; border-radius:12px; background:rgba(83,227,166,.11); color:var(--green); }
+        .system-row strong,.system-row small { display:block; }
+        .system-row strong { font-size:.82rem; }
+        .system-row small { margin-top:3px; color:var(--muted-2); font-size:.72rem; }
+        @@media (max-width:1050px) { .management-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .hero-symbol { opacity:.3; right:25px; } }
+        @@media (max-width:760px) {
+            :root { --rail:0px; }
+            .shell { display:block; padding:0; }
+            .sidebar { position:fixed; z-index:50; inset:0 auto 0 0; width:250px; height:100vh; border-radius:0; transform:translateX(-102%); transition:transform .25s ease; box-shadow:25px 0 70px rgba(0,0,0,.55); }
+            .sidebar.open { transform:translateX(0); }
+            .mobile-toggle { width:36px; height:36px; display:grid; place-items:center; border:0; border-radius:50%; background:var(--panel-3); color:#fff; cursor:pointer; }
+            .main { min-height:100vh; border-radius:0; }
+            .topbar { padding:0 17px; }
+            .content { padding:20px 15px 40px; }
+            .hero { min-height:300px; padding:27px; }
+            .hero-symbol { top:32px; right:5px; width:140px; height:140px; font-size:3.5rem; }
+            h1 { letter-spacing:-2px; }
+            .quick-grid { grid-template-columns:1fr; }
+        }
+        @@media (max-width:520px) { .status span:last-child { display:none; } .management-grid,.quick-actions { grid-template-columns:1fr; } .management-card { min-height:205px; } .section-head { display:block; } .section-head p { margin-top:6px; } }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <aside class="sidebar" id="adminSidebar">
+            <a class="brand" asp-controller="Home" asp-action="Index"><span class="brand-mark"><i class="bi bi-broadcast"></i></span>Echoa</a>
+            <div class="nav-label">Yönetim</div>
+            <nav class="nav" aria-label="Yönetim menüsü">
+                <a class="nav-item active" asp-controller="Admin" asp-action="Index"><i class="bi bi-grid-1x2-fill"></i>Genel Bakış</a>
+                <a class="nav-item" asp-controller="Admin" asp-action="Songs"><i class="bi bi-music-note-beamed"></i>Şarkılar</a>
+                <a class="nav-item" asp-controller="Admin" asp-action="Artists"><i class="bi bi-mic-fill"></i>Sanatçılar</a>
+                <a class="nav-item" asp-controller="Admin" asp-action="Genres"><i class="bi bi-vinyl-fill"></i>Türler</a>
+                <a class="nav-item" asp-controller="Admin" asp-action="Users"><i class="bi bi-people-fill"></i>Kullanıcılar</a>
+            </nav>
+            <div class="sidebar-foot">
+                <div class="admin-chip"><span class="avatar">A</span><span><strong>Yönetici</strong><small>Echoa Admin</small></span></div>
+                <a class="nav-item" asp-controller="Home" asp-action="Index"><i class="bi bi-arrow-left"></i>Siteye dön</a>
+                <a class="nav-item logout" asp-controller="Login" asp-action="Logout"><i class="bi bi-box-arrow-right"></i>Çıkış yap</a>
+            </div>
+        </aside>
+        <main class="main">
+            <header class="topbar">
+                <button class="mobile-toggle" id="menuToggle" type="button" aria-label="Menüyü aç" aria-expanded="false"><i class="bi bi-list"></i></button>
+                <span class="page-name">Yönetim Merkezi</span><span class="topbar-spacer"></span>
+                <span class="status"><span class="status-dot"></span><span>Sistem aktif</span></span>
+                <a class="site-link" asp-controller="Home" asp-action="Index" aria-label="Siteyi görüntüle" title="Siteyi görüntüle"><i class="bi bi-arrow-up-right"></i></a>
+            </header>
+            <div class="content">
+                <section class="hero">
+                    <div class="hero-copy"><div class="eyebrow"><i class="bi bi-stars"></i> Echoa kontrol merkezi</div><h1>Müziğin akışını<br /><span class="gradient">sen yönet.</span></h1><p>İçerikleri düzenle, sanatçı kataloğunu güncel tut ve kullanıcı deneyimini tek bir merkezden kolayca yönet.</p></div>
+                    <div class="hero-symbol" aria-hidden="true"><i class="bi bi-soundwave"></i></div>
+                </section>
+                <div class="section-head"><div><h2>İçerik yönetimi</h2><p>Yönetmek istediğin alanı seç.</p></div><p>4 yönetim modülü</p></div>
+                <section class="management-grid" aria-label="Yönetim modülleri">
+                    <a class="management-card" asp-controller="Admin" asp-action="Songs" style="--glow:rgba(168,85,247,.9)"><span class="card-icon"><i class="bi bi-music-note-beamed"></i></span><h3>Şarkılar</h3><p>Şarkı kataloğunu görüntüle, yeni parçalar ekle ve mevcut içerikleri düzenle.</p><span class="card-action">Şarkıları yönet <i class="bi bi-arrow-right"></i></span></a>
+                    <a class="management-card" asp-controller="Admin" asp-action="Artists" style="--glow:rgba(236,72,153,.9)"><span class="card-icon"><i class="bi bi-mic-fill"></i></span><h3>Sanatçılar</h3><p>Sanatçı profillerini oluştur, bilgilerini güncelle ve kataloğu düzenle.</p><span class="card-action">Sanatçıları yönet <i class="bi bi-arrow-right"></i></span></a>
+                    <a class="management-card" asp-controller="Admin" asp-action="Genres" style="--glow:rgba(59,130,246,.9)"><span class="card-icon"><i class="bi bi-vinyl-fill"></i></span><h3>Müzik türleri</h3><p>Kataloğu türlere ayır, yeni kategoriler ekle ve keşfi kolaylaştır.</p><span class="card-action">Türleri yönet <i class="bi bi-arrow-right"></i></span></a>
+                    <a class="management-card" asp-controller="Admin" asp-action="Users" style="--glow:rgba(83,227,166,.85)"><span class="card-icon"><i class="bi bi-people-fill"></i></span><h3>Kullanıcılar</h3><p>Üyeleri görüntüle, paket seviyelerini incele ve erişimleri yönet.</p><span class="card-action">Kullanıcıları yönet <i class="bi bi-arrow-right"></i></span></a>
+                </section>
+                <div class="section-head"><div><h2>Hızlı işlemler</h2><p>Sık kullanılan yönetim araçlarına doğrudan ulaş.</p></div></div>
+                <section class="quick-grid">
+                    <div class="quick-panel"><h3>Kısayollar</h3><p>Yeni içerik eklemek veya düzenlemek için ilgili modülü aç.</p><div class="quick-actions"><a class="quick-action" asp-controller="Admin" asp-action="Songs"><i class="bi bi-plus-circle"></i>Şarkı ekle</a><a class="quick-action" asp-controller="Admin" asp-action="Artists"><i class="bi bi-person-plus"></i>Sanatçı ekle</a><a class="quick-action" asp-controller="Admin" asp-action="Genres"><i class="bi bi-bookmark-plus"></i>Tür ekle</a></div></div>
+                    <div class="quick-panel"><h3>Sistem durumu</h3><p>Yönetim servisleri kullanıma hazır.</p><div class="system-row"><span class="system-icon"><i class="bi bi-check2-circle"></i></span><span><strong>Tüm sistemler çalışıyor</strong><small>İçerik yönetimi aktif</small></span></div></div>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script>
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('adminSidebar');
+        menuToggle?.addEventListener('click', () => {
+            const isOpen = sidebar.classList.toggle('open');
+            menuToggle.setAttribute('aria-expanded', isOpen.toString());
+            menuToggle.querySelector('i').className = isOpen ? 'bi bi-x-lg' : 'bi bi-list';
+        });
+        document.addEventListener('click', event => {
+            if (window.innerWidth <= 760 && sidebar.classList.contains('open') && !sidebar.contains(event.target) && !menuToggle.contains(event.target)) {
+                sidebar.classList.remove('open');
+                menuToggle.setAttribute('aria-expanded', 'false');
+                menuToggle.querySelector('i').className = 'bi bi-list';
+            }
+        });
+    </script>
+</body>
+</html>

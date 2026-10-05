@@ -126,6 +126,8 @@
             font-size: .82rem; color: var(--txt); cursor: pointer;
         }
         .user-dropdown-logout:hover { background: var(--panel-3); color: var(--danger); }
+        .user-dropdown-admin { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; font-size: .82rem; color: var(--txt); cursor: pointer; }
+        .user-dropdown-admin:hover { background: var(--panel-3); color: var(--accent); }
 
         .hero { position: relative; overflow: hidden; padding: 26px 24px 30px; }
 
@@ -329,6 +331,7 @@
                 <a class="nav-item on" href="/Song/History"><i class="bi bi-clock-history"></i>Geçmiş</a>
                 <a class="nav-item" href="/Artist/Followed"><i class="bi bi-person-heart"></i>Takip Ettiklerim</a>
                 <a class="nav-item" href="/Song/Favorites"><i class="bi bi-heart"></i>Beğendiklerim</a>
+                <a class="nav-item" href="/Playlist/Index"><i class="bi bi-collection-play"></i>Çalma Listelerim</a>
             </div>
         </aside>
 
@@ -340,6 +343,10 @@
                 <div class="user-menu" id="userMenu">
                     <div class="avatar-pill" id="avatarBtn"><i class="bi bi-person-fill"></i></div>
                     <div class="user-dropdown" id="userDropdown">
+                        @if ((bool)(ViewBag.IsAdmin ?? false))
+                        {
+                            <a class="user-dropdown-admin" href="/Admin/Index"><i class="bi bi-gear"></i>Admin Paneli</a>
+                        }
                         <a class="user-dropdown-logout" href="/Login/Logout"><i class="bi bi-box-arrow-right"></i>Çıkış yap</a>
                     </div>
                 </div>

@@ -179,6 +179,8 @@
             font-size: .82rem; color: var(--txt); cursor: pointer;
         }
         .user-dropdown-logout:hover { background: var(--panel-3); color: var(--danger); }
+        .user-dropdown-admin { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; font-size: .82rem; color: var(--txt); cursor: pointer; }
+        .user-dropdown-admin:hover { background: var(--panel-3); color: var(--accent); }
 
         .hero { position: relative; overflow: hidden; padding: 26px 24px 30px; }
 
@@ -317,6 +319,30 @@
         .fav-icon { color: var(--txt-3); font-size: .9rem; cursor: pointer; margin-left: 2px; }
         .fav-icon:hover { color: #f43f5e; }
         .fav-icon.on { color: #f43f5e; }
+        .add-icon { color: var(--txt-3); font-size: .9rem; cursor: pointer; margin-left: 2px; }
+        .add-icon:hover { color: var(--accent); }
+
+        .add-popup {
+            position: fixed; z-index: 200; min-width: 200px; max-width: 240px;
+            background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px;
+            padding: 8px; box-shadow: 0 16px 40px rgba(0,0,0,.5);
+        }
+        .add-popup-item {
+            padding: 8px 10px; border-radius: 8px; font-size: .85rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: space-between; gap: 8px;
+        }
+        .add-popup-item:hover { background: var(--panel-3); }
+        .add-popup-count { color: var(--txt-3); font-size: .74rem; }
+        .add-popup-empty { padding: 8px 10px; font-size: .8rem; color: var(--txt-3); }
+        .add-popup-new { display: flex; gap: 6px; margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--line); }
+        .add-popup-new input {
+            flex: 1; min-width: 0; height: 32px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line);
+            background: var(--panel-3); color: var(--txt); font-family: inherit; font-size: .8rem; outline: none;
+        }
+        .add-popup-new button {
+            height: 32px; padding: 0 10px; border: none; border-radius: 8px; cursor: pointer;
+            background: var(--accent); color: #fff; font-family: inherit; font-size: .78rem; font-weight: 700;
+        }
         .t-sub { font-size: .8rem; color: var(--txt-3); margin-top: 2px; }
 
         .badge {
@@ -472,10 +498,11 @@
                 <a class="nav-item" href="/Home/Index"><i class="bi bi-house-door"></i>Ana sayfa</a>
                 <a class="nav-item" href="/Artist/ArtistListV2"><i class="bi bi-person-badge"></i>Sanatçılar</a>
                 <a class="nav-item" href="/Genre/GenreList"><i class="bi bi-collection"></i>Türler</a>
-                <a class="nav-item on" href="/Song/Charts"><i class="bi bi-music-note-list"></i>Top Charts</a>
+                <a class="nav-item on" href="/Song/Charts"><i class="bi bi-music-note-list"></i>Şarkılar</a>
                 <a class="nav-item" href="/Song/History"><i class="bi bi-clock-history"></i>Geçmiş</a>
                 <a class="nav-item" href="/Artist/Followed"><i class="bi bi-person-heart"></i>Takip Ettiklerim</a>
                 <a class="nav-item" href="/Song/Favorites"><i class="bi bi-heart"></i>Beğendiklerim</a>
+                <a class="nav-item" href="/Playlist/Index"><i class="bi bi-collection-play"></i>Çalma Listelerim</a>
             </div>
 
             <div class="rail-scroll">
@@ -507,6 +534,10 @@
                 <div class="user-menu" id="userMenu">
                     <div class="avatar-pill" id="avatarBtn"><i class="bi bi-person-fill"></i></div>
                     <div class="user-dropdown" id="userDropdown">
+                        @if ((bool)(ViewBag.IsAdmin ?? false))
+                        {
+                            <a class="user-dropdown-admin" href="/Admin/Index"><i class="bi bi-gear"></i>Admin Paneli</a>
+                        }
                         <a class="user-dropdown-logout" href="/Login/Logout"><i class="bi bi-box-arrow-right"></i>Çıkış yap</a>
                     </div>
                 </div>
@@ -630,6 +661,7 @@
                                                 <i class="bi bi-lock-fill" title="@s.PackageName paketi gerekiyor"></i>
                                             }
                                             <i class="bi @(favorited ? "bi-heart-fill" : "bi-heart") fav-icon @(favorited ? "on" : "")" data-id="@s.SongId" title="Beğen"></i>
+                                            <i class="bi bi-plus-circle add-icon" data-id="@s.SongId" title="Çalma listesine ekle"></i>
                                         </div>
                                         <div class="t-sub">@s.ArtistName</div>
                                     </div>
@@ -909,9 +941,63 @@
             });
         });
 
+        var addPopup = null;
+        function closeAddPopup() { if (addPopup) { addPopup.remove(); addPopup = null; } }
+        document.addEventListener('click', function (e) {
+            if (addPopup && !addPopup.contains(e.target) && !e.target.classList.contains('add-icon')) { closeAddPopup(); }
+        });
+
+        document.querySelectorAll('.add-icon').forEach(function (el) {
+            el.addEventListener('click', async function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                closeAddPopup();
+                var songId = this.dataset.id;
+                var rect = this.getBoundingClientRect();
+
+                var res = await fetch('/Playlist/GetMine');
+                if (res.status === 401) { window.location.href = '/Login/SignIn'; return; }
+                var playlists = res.ok ? await res.json() : [];
+
+                var pop = document.createElement('div');
+                pop.className = 'add-popup';
+                pop.style.top = (rect.bottom + 6) + 'px';
+                pop.style.left = Math.min(rect.left, window.innerWidth - 250) + 'px';
+
+                var listHtml = playlists.length
+                    ? playlists.map(function (p) {
+                        return '<div class="add-popup-item" data-pid="' + p.playlistId + '"><span>' + p.name + '</span><span class="add-popup-count">' + p.songCount + '</span></div>';
+                    }).join('')
+                    : '<div class="add-popup-empty">Henüz listen yok</div>';
+
+                pop.innerHTML = listHtml +
+                    '<div class="add-popup-new"><input type="text" placeholder="Yeni liste adı" id="newPlName" /><button type="button" id="newPlBtn">Oluştur</button></div>';
+
+                document.body.appendChild(pop);
+                addPopup = pop;
+
+                pop.querySelectorAll('.add-popup-item').forEach(function (item) {
+                    item.addEventListener('click', async function () {
+                        await fetch('/Playlist/AddSong?playlistId=' + this.dataset.pid + '&songId=' + songId, { method: 'POST' });
+                        closeAddPopup();
+                    });
+                });
+
+                document.getElementById('newPlBtn').addEventListener('click', async function () {
+                    var name = document.getElementById('newPlName').value.trim();
+                    if (!name) { return; }
+                    var createRes = await fetch('/Playlist/Create?name=' + encodeURIComponent(name), { method: 'POST' });
+                    if (!createRes.ok) { return; }
+                    var newPl = await createRes.json();
+                    await fetch('/Playlist/AddSong?playlistId=' + newPl.playlistId + '&songId=' + songId, { method: 'POST' });
+                    closeAddPopup();
+                });
+            });
+        });
+
         document.querySelectorAll('.trow').forEach(function (row) {
             row.addEventListener('click', function (e) {
-                if (e.target.closest('.listen') || e.target.closest('.fav-icon')) { return; }
+                if (e.target.closest('.listen') || e.target.closest('.fav-icon') || e.target.closest('.add-icon')) { return; }
                 if (window.spaNavigate) { window.spaNavigate(this.dataset.href); }
                 else { window.location.href = this.dataset.href; }
             });

@@ -234,6 +234,59 @@ namespace JwtMusicNight.WebApi.Migrations
                     b.ToTable("Packages");
                 });
 
+            modelBuilder.Entity("JwtMusicNight.WebApi.Entities.Playlist", b =>
+                {
+                    b.Property<int>("PlaylistId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PlaylistId"), 1L, 1);
+
+                    b.Property<string>("AppUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("PlaylistId");
+
+                    b.HasIndex("AppUserId");
+
+                    b.ToTable("Playlists");
+                });
+
+            modelBuilder.Entity("JwtMusicNight.WebApi.Entities.PlaylistSong", b =>
+                {
+                    b.Property<int>("PlaylistSongId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PlaylistSongId"), 1L, 1);
+
+                    b.Property<DateTime>("AddedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PlaylistId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SongId")
+                        .HasColumnType("int");
+
+                    b.HasKey("PlaylistSongId");
+
+                    b.HasIndex("SongId");
+
+                    b.HasIndex("PlaylistId", "SongId")
+                        .IsUnique();
+
+                    b.ToTable("PlaylistSongs");
+                });
+
             modelBuilder.Entity("JwtMusicNight.WebApi.Entities.Song", b =>
                 {
                     b.Property<int>("SongId")
@@ -497,6 +550,36 @@ namespace JwtMusicNight.WebApi.Migrations
                     b.Navigation("Song");
                 });
 
+            modelBuilder.Entity("JwtMusicNight.WebApi.Entities.Playlist", b =>
+                {
+                    b.HasOne("JwtMusicNight.WebApi.Entities.AppUser", "AppUser")
+                        .WithMany()
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+                });
+
+            modelBuilder.Entity("JwtMusicNight.WebApi.Entities.PlaylistSong", b =>
+                {
+                    b.HasOne("JwtMusicNight.WebApi.Entities.Playlist", "Playlist")
+                        .WithMany("PlaylistSongs")
+                        .HasForeignKey("PlaylistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("JwtMusicNight.WebApi.Entities.Song", "Song")
+                        .WithMany()
+                        .HasForeignKey("SongId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Playlist");
+
+                    b.Navigation("Song");
+                });
+
             modelBuilder.Entity("JwtMusicNight.WebApi.Entities.Song", b =>
                 {
                     b.HasOne("JwtMusicNight.WebApi.Entities.Artist", "Artist")
@@ -614,6 +697,11 @@ namespace JwtMusicNight.WebApi.Migrations
                     b.Navigation("Songs");
 
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("JwtMusicNight.WebApi.Entities.Playlist", b =>
+                {
+                    b.Navigation("PlaylistSongs");
                 });
 
             modelBuilder.Entity("JwtMusicNight.WebApi.Entities.Song", b =>

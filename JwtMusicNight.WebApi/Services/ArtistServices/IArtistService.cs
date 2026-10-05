@@ -11,5 +11,7 @@ namespace JwtMusicNight.WebApi.Services.ArtistServices
         Task<bool> ToggleFollowAsync(string appUserId, int artistId);
         Task<bool> IsFollowingAsync(string appUserId, int artistId);
         Task<List<ResultArtistDto>> GetFollowedArtistsAsync(string appUserId);
+        Task<bool> UpdateArtistAsync(int id, CreateArtistDto createArtistDto);
+        Task<bool> DeleteArtistAsync(int id);
     }
 }

@@ -1,0 +1,23 @@
+@model List<JwtMusicNight.WebUI.Dtos.ResultArtistDto>
+@{ Layout = "_AdminLayout"; ViewData["Title"] = "Sanatçı Yönetimi"; ViewData["AdminPage"] = "Artists"; var editing = ViewBag.EditingArtist as JwtMusicNight.WebUI.Dtos.ResultArtistDto; }
+<header class="admin-heading"><div><div class="admin-kicker">Katalog</div><h1>Sanatçılar</h1><p>Sanatçı profillerini oluştur, görsellerini ve biyografilerini güncel tut.</p></div><span class="admin-count"><i class="bi bi-mic"></i> @Model.Count sanatçı</span></header>
+<section class="admin-card">
+    <div class="admin-card-head"><h2 class="admin-card-title"><i class="bi bi-person-plus"></i>@(editing != null ? "Sanatçıyı düzenle" : "Yeni sanatçı ekle")</h2>@if (editing != null) { <span class="admin-edit-badge">Düzenleme modu</span> }</div>
+    <form asp-controller="Admin" asp-action="@(editing != null ? "EditArtist" : "CreateArtist")" method="post" class="admin-form-grid">
+        @if (editing != null) { <input type="hidden" name="id" value="@editing.ArtistId" /> }
+        <div class="field"><label for="artistName">Sanatçı adı</label><input id="artistName" type="text" name="ArtistName" class="admin-input" value="@(editing?.ArtistName)" placeholder="Sanatçı adı" required /></div>
+        <div class="field"><label for="country">Ülke</label><input id="country" type="text" name="Country" class="admin-input" value="@(editing?.Country)" placeholder="Örn. Türkiye" /></div>
+        <div class="field"><label>Profil durumu</label><label class="admin-check" for="isVerified"><input type="checkbox" name="IsVerified" value="true" id="isVerified" checked="@(editing?.IsVerified ?? false)" /> Onaylı sanatçı</label></div>
+        <div class="field half"><label for="artistImage">Profil görseli URL</label><input id="artistImage" type="text" name="ArtistImageUrl" class="admin-input" value="@(editing?.ArtistImageUrl)" placeholder="https://..." /></div>
+        <div class="field half"><label for="coverImage">Kapak görseli URL</label><input id="coverImage" type="text" name="CoverImageUrl" class="admin-input" value="@(editing?.CoverImageUrl)" placeholder="https://..." /></div>
+        <div class="field full"><label for="bio">Biyografi</label><textarea id="bio" name="Bio" class="admin-textarea" placeholder="Sanatçı hakkında kısa bir açıklama...">@(editing?.Bio)</textarea></div>
+        <div class="admin-actions"><button type="submit" class="admin-btn admin-btn-primary"><i class="bi bi-check2"></i>@(editing != null ? "Değişiklikleri kaydet" : "Sanatçı ekle")</button>@if (editing != null) { <a asp-controller="Admin" asp-action="Artists" class="admin-btn admin-btn-secondary">Vazgeç</a> }</div>
+    </form>
+</section>
+<section class="admin-table-card">
+    <div class="admin-table-head"><h2>Sanatçı kataloğu</h2><span>Profil bilgileri ve doğrulama durumu</span></div>
+    @if (Model.Count == 0) { <div class="admin-empty"><i class="bi bi-mic"></i>Henüz sanatçı eklenmedi.</div> }
+    else { <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Sanatçı</th><th>Ülke</th><th>Durum</th><th></th></tr></thead><tbody>
+        @foreach (var artist in Model) { <tr><td><div class="admin-user"><span class="admin-user-avatar">@(string.IsNullOrWhiteSpace(artist.ArtistName) ? "?" : artist.ArtistName.Substring(0, 1).ToUpper())</span><span>@artist.ArtistName</span></div></td><td>@(string.IsNullOrWhiteSpace(artist.Country) ? "—" : artist.Country)</td><td>@if (artist.IsVerified) { <span class="admin-pill ok"><i class="bi bi-patch-check-fill"></i>Onaylı</span> } else { <span class="admin-pill">Standart</span> }</td><td><div class="admin-row-actions"><a asp-controller="Admin" asp-action="Artists" asp-route-editId="@artist.ArtistId" class="admin-btn admin-btn-secondary admin-btn-small"><i class="bi bi-pencil"></i>Düzenle</a><form asp-controller="Admin" asp-action="DeleteArtist" method="post" onsubmit="return confirm('Bu sanatçıyı silmek istediğine emin misin? Şarkıları varsa silme başarısız olur.');"><input type="hidden" name="id" value="@artist.ArtistId" /><button type="submit" class="admin-btn admin-btn-danger admin-btn-small"><i class="bi bi-trash3"></i>Sil</button></form></div></td></tr> }
+    </tbody></table></div> }
+</section>

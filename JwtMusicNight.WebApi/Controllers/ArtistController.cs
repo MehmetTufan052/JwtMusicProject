@@ -26,10 +26,35 @@ namespace JwtMusicNight.WebApi.Controllers
         }
          
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateArtist(CreateArtistDto createArtistDto)
         {
             await _artistService.CreateArtistAsync(createArtistDto);
             return Ok("Başarılı!");
+        }
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateArtist(int id, CreateArtistDto createArtistDto)
+        {
+            var success = await _artistService.UpdateArtistAsync(id, createArtistDto);
+            if (!success)
+            {
+                return NotFound("Sanatci bulunamadi.");
+            }
+            return Ok();
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteArtist(int id)
+        {
+            var success = await _artistService.DeleteArtistAsync(id);
+            if (!success)
+            {
+                return NotFound("Sanatci bulunamadi.");
+            }
+            return Ok();
         }
         
         [HttpGet("{id}")]

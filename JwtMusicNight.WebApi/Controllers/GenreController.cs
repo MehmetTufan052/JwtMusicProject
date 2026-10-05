@@ -1,4 +1,5 @@
-﻿using JwtMusicNight.WebApi.Services.GenreServices;
+﻿using JwtMusicNight.WebApi.Dtos;
+using JwtMusicNight.WebApi.Services.GenreServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +23,26 @@ namespace JwtMusicNight.WebApi.Controllers
         {
             var values = await _genreService.GetAllGenresAsync();
             return Ok(values);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateGenre(CreateGenreDto createGenreDto)
+        {
+            var value = await _genreService.CreateGenreAsync(createGenreDto);
+            return Ok(value);
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteGenre(int id)
+        {
+            var success = await _genreService.DeleteGenreAsync(id);
+            if (!success)
+            {
+                return NotFound("Tur bulunamadi.");
+            }
+            return Ok();
         }
     }
 }

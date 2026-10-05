@@ -39,6 +39,7 @@ namespace JwtMusicNight.WebUI.Controllers
             var values = JsonConvert.DeserializeObject<List<ResultArtistDto>>(jsonData);
 
             ViewBag.PackageName = HttpContext.Session.GetString("PackageName") ?? "Basic";
+            ViewBag.IsAdmin = HttpContext.Session.GetString("IsAdmin") == "True";
 
             return View(values);
         }
@@ -122,6 +123,7 @@ namespace JwtMusicNight.WebUI.Controllers
             var artists = JsonConvert.DeserializeObject<List<ResultArtistDto>>(json) ?? new();
 
             ViewBag.PackageName = HttpContext.Session.GetString("PackageName") ?? "Basic";
+            ViewBag.IsAdmin = HttpContext.Session.GetString("IsAdmin") == "True";
 
             return View(artists);
         }

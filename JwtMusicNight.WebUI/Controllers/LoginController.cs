@@ -34,6 +34,7 @@ namespace JwtMusicNight.WebUI.Controllers
                 HttpContext.Session.SetString("JwtToken", tokenModel.Token);
                 HttpContext.Session.SetString("PackageName", tokenModel.PackageName);
                 HttpContext.Session.SetInt32("PackageLevel", tokenModel.PackageLevel);
+                HttpContext.Session.SetString("IsAdmin", tokenModel.IsAdmin.ToString());
 
                 return RedirectToAction("ArtistListV2", "Artist");
             }

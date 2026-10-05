@@ -1,0 +1,422 @@
+@model List<JwtMusicNight.WebUI.Dtos.ResultPlaylistDto>
+@{
+    Layout = null;
+    ViewData["Title"] = "Çalma Listelerim – Echoa";
+    var userPkg = (string)ViewBag.PackageName;
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <script src="/js/spa-router.js"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --bg: #000;
+            --panel: #121212;
+            --panel-2: #181818;
+            --panel-3: #232323;
+            --line: rgba(255,255,255,.09);
+            --txt: #fff;
+            --txt-2: #b3b3b3;
+            --txt-3: #6a6a6a;
+            --accent: #a855f7;
+            --accent-2: #ec4899;
+            --ok: #1ed760;
+            --danger: #f43f5e;
+            --player-h: 76px;
+            --rail-w: 232px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; }
+
+        body {
+            background: var(--bg);
+            color: var(--txt);
+            font-family: 'Figtree', system-ui, sans-serif;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        a { color: inherit; text-decoration: none; }
+
+        .shell {
+            display: grid;
+            grid-template-columns: var(--rail-w) minmax(0, 1fr);
+            grid-template-rows: 1fr var(--player-h);
+            width: 100%;
+            max-width: 100vw;
+            height: 100dvh;
+            gap: 8px;
+            padding: 8px;
+            overflow: hidden;
+        }
+
+        .rail { grid-row: 1; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+        .rail-box { background: var(--panel); border-radius: 10px; padding: 16px 12px; }
+
+        .brand {
+            display: flex; align-items: center; gap: 10px;
+            padding: 4px 8px 14px; font-weight: 800; font-size: 1.18rem; letter-spacing: -.5px;
+        }
+
+        .brand-dot {
+            width: 26px; height: 26px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            display: grid; place-items: center; font-size: .85rem;
+        }
+
+        .nav-item {
+            display: flex; align-items: center; gap: 14px; padding: 9px 10px; border-radius: 6px;
+            color: var(--txt-2); font-weight: 600; font-size: .92rem; position: relative;
+            transition: color .18s, background .18s;
+        }
+
+        .nav-item i { font-size: 1.22rem; }
+        .nav-item:hover { color: var(--txt); }
+        .nav-item.on { color: var(--txt); background: var(--panel-3); }
+
+        .nav-item::before {
+            content: ''; position: absolute; left: 0; top: 50%; width: 3px; height: 0; border-radius: 3px;
+            background: linear-gradient(var(--accent), var(--accent-2));
+            transform: translateY(-50%); transition: height .28s cubic-bezier(.22,1,.36,1);
+        }
+
+        .nav-item.on::before, .nav-item:hover::before { height: 62%; }
+
+        .main {
+            grid-row: 1; min-width: 0; min-height: 0; position: relative;
+            background: var(--panel); border-radius: 10px; overflow-x: hidden; overflow-y: auto;
+        }
+
+        .topbar {
+            position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 14px;
+            padding: 14px 24px; background: rgba(18,18,18,.82); backdrop-filter: blur(18px); border-bottom: 1px solid transparent;
+        }
+
+        .topbar.stuck { border-bottom-color: var(--line); }
+
+        .spacer { flex: 1; }
+
+        .pkg-pill {
+            display: flex; align-items: center; gap: 7px; height: 32px; padding: 0 14px; border-radius: 50px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2)); font-size: .8rem; font-weight: 700;
+        }
+
+        .avatar-pill {
+            width: 32px; height: 32px; border-radius: 50%; background: var(--panel-3);
+            display: grid; place-items: center; font-size: .95rem; color: var(--txt-2);
+            cursor: pointer;
+        }
+
+        .user-menu { position: relative; }
+        .user-dropdown {
+            position: absolute; top: calc(100% + 10px); right: 0; min-width: 180px;
+            background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px;
+            padding: 8px; display: none; flex-direction: column; gap: 4px; z-index: 50;
+            box-shadow: 0 16px 40px rgba(0,0,0,.4);
+        }
+        .user-dropdown.show { display: flex; }
+        .user-dropdown-logout {
+            display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px;
+            font-size: .82rem; color: var(--txt); cursor: pointer;
+        }
+        .user-dropdown-logout:hover { background: var(--panel-3); color: var(--danger); }
+        .user-dropdown-admin { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; font-size: .82rem; color: var(--txt); cursor: pointer; }
+        .user-dropdown-admin:hover { background: var(--panel-3); color: var(--accent); }
+
+        .hero { position: relative; overflow: hidden; padding: 26px 24px 30px; }
+
+        .orb { position: absolute; border-radius: 50%; filter: blur(70px); pointer-events: none; z-index: 0; }
+        .orb-a { width: 340px; height: 340px; top: -140px; left: -60px; background: rgba(168,85,247,.45); animation: floatOrb 17s ease-in-out infinite; }
+        .orb-b { width: 280px; height: 280px; top: -60px; left: 46%; background: rgba(236,72,153,.3); animation: floatOrb 21s ease-in-out infinite reverse; }
+        .hero > *:not(.orb) { position: relative; z-index: 1; }
+
+        .hero-kicker { font-size: .76rem; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: var(--txt-2); margin-bottom: 10px; }
+        .hero-title { font-size: clamp(2.4rem, 6vw, 4.2rem); font-weight: 800; letter-spacing: -2.5px; line-height: 1.02; }
+
+        .hero-meta { margin-top: 14px; font-size: .9rem; color: var(--txt-2); display: flex; align-items: center; gap: 8px; }
+
+        .sec { width: 100%; min-width: 0; padding: 6px 24px 30px; overflow: hidden; }
+
+        .new-row { display: flex; gap: 10px; margin-bottom: 24px; max-width: 420px; }
+        .new-row input {
+            flex: 1; min-width: 0; height: 42px; padding: 0 16px; border-radius: 50px; border: 1px solid var(--line);
+            background: var(--panel-2); color: var(--txt); font-family: inherit; font-size: .88rem; outline: none;
+        }
+        .new-row input:focus { border-color: rgba(255,255,255,.3); }
+        .new-row button {
+            height: 42px; padding: 0 20px; border: none; border-radius: 50px; cursor: pointer;
+            background: linear-gradient(120deg, var(--accent), var(--accent-2)); color: #fff;
+            font-family: inherit; font-size: .85rem; font-weight: 800;
+        }
+
+        /* ---------- PLAYLIST GRID ---------- */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
+
+        .pl-card {
+            display: block; padding: 16px; border-radius: 14px; background: var(--panel-2);
+            border: 1px solid var(--line); position: relative; transition: transform .2s, background .2s;
+            animation: fadeUp .5s cubic-bezier(.22,1,.36,1) both;
+        }
+        .pl-card:hover { background: var(--panel-3); transform: translateY(-3px); }
+
+        .pl-art {
+            width: 100%; aspect-ratio: 1; border-radius: 10px; margin-bottom: 14px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            display: grid; place-items: center; font-size: 2.4rem; color: rgba(255,255,255,.9);
+        }
+
+        .pl-name { font-size: .96rem; font-weight: 750; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pl-sub { margin-top: 4px; font-size: .78rem; color: var(--txt-3); }
+
+        .pl-del {
+            position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; border-radius: 50%;
+            border: none; background: rgba(0,0,0,.6); color: var(--txt-2); display: grid; place-items: center;
+            cursor: pointer; opacity: 0; transition: opacity .2s, color .2s;
+        }
+        .pl-card:hover .pl-del { opacity: 1; }
+        .pl-del:hover { color: var(--danger); }
+
+        .empty { text-align: center; padding: 50px 20px; color: var(--txt-3); }
+        .empty i { font-size: 2.3rem; display: block; margin-bottom: 12px; }
+
+        /* ---------- PLAYER ---------- */
+        .player {
+            grid-column: 1 / -1; grid-row: 2; min-width: 0; overflow: hidden;
+            display: flex; align-items: center; gap: 16px; padding: 0 16px;
+        }
+        .np { display: flex; align-items: center; gap: 12px; width: 260px; min-width: 0; }
+
+        .np-art {
+            width: 54px; height: 54px; border-radius: 6px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            display: grid; place-items: center; font-size: 1.3rem; flex-shrink: 0; transition: transform .4s;
+        }
+
+        .np-art.spin { animation: spin 6s linear infinite; }
+
+        .np-name { font-size: .88rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .np-sub { font-size: .76rem; color: var(--txt-3); display: flex; align-items: center; gap: 8px; }
+
+        .eq { display: none; align-items: flex-end; gap: 2px; width: 20px; height: 15px; }
+        .eq.on { display: flex; }
+        .eq span { flex: 1; background: var(--ok); border-radius: 1px; animation: eqBar .85s ease-in-out infinite; }
+        .eq span:nth-child(2) { animation-delay: .18s; }
+        .eq span:nth-child(3) { animation-delay: .36s; }
+        .eq span:nth-child(4) { animation-delay: .54s; }
+
+        .pl-center { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .pl-play {
+            width: 36px; height: 36px; border-radius: 50%; background: var(--txt); color: #000;
+            display: grid; place-items: center; font-size: 1.1rem; border: none; cursor: pointer;
+            transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+        }
+        .pl-play:hover { transform: scale(1.12); }
+
+        ::-webkit-scrollbar { width: 11px; }
+        ::-webkit-scrollbar-thumb { background: #4a4a4a; border-radius: 6px; border: 3px solid transparent; background-clip: content-box; }
+
+        @@keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+        @@keyframes floatOrb { 0%, 100% { transform: translate(0,0) scale(1); } 50% { transform: translate(38px,-26px) scale(1.14); } }
+        @@keyframes spin { to { transform: rotate(360deg); } }
+        @@keyframes eqBar { 0%, 100% { height: 22%; } 50% { height: 100%; } }
+
+        @@media (max-width: 1000px) {
+            .shell { grid-template-columns: minmax(0, 1fr); }
+            .rail { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+
+        <aside class="rail">
+            <div class="rail-box">
+                <div class="brand">
+                    <div class="brand-dot"><i class="bi bi-broadcast"></i></div>
+                    Echoa
+                </div>
+                <a class="nav-item" href="/Home/Index"><i class="bi bi-house-door"></i>Ana sayfa</a>
+                <a class="nav-item" href="/Artist/ArtistListV2"><i class="bi bi-person-badge"></i>Sanatçılar</a>
+                <a class="nav-item" href="/Genre/GenreList"><i class="bi bi-collection"></i>Türler</a>
+                <a class="nav-item" href="/Song/Charts"><i class="bi bi-music-note-list"></i>Top Charts</a>
+                <a class="nav-item" href="/Song/History"><i class="bi bi-clock-history"></i>Geçmiş</a>
+                <a class="nav-item" href="/Artist/Followed"><i class="bi bi-person-heart"></i>Takip Ettiklerim</a>
+                <a class="nav-item" href="/Song/Favorites"><i class="bi bi-heart"></i>Beğendiklerim</a>
+                <a class="nav-item on" href="/Playlist/Index"><i class="bi bi-collection-play"></i>Çalma Listelerim</a>
+            </div>
+        </aside>
+
+        <main class="main" id="main">
+
+            <div class="topbar" id="topbar">
+                <div class="spacer"></div>
+                <div class="pkg-pill"><i class="bi bi-gem"></i>@userPkg</div>
+                <div class="user-menu" id="userMenu">
+                    <div class="avatar-pill" id="avatarBtn"><i class="bi bi-person-fill"></i></div>
+                    <div class="user-dropdown" id="userDropdown">
+                        @if ((bool)(ViewBag.IsAdmin ?? false))
+                        {
+                            <a class="user-dropdown-admin" href="/Admin/Index"><i class="bi bi-gear"></i>Admin Paneli</a>
+                        }
+                        <a class="user-dropdown-logout" href="/Login/Logout"><i class="bi bi-box-arrow-right"></i>Çıkış yap</a>
+                    </div>
+                </div>
+            </div>
+
+            <section class="hero">
+                <div class="orb orb-a"></div>
+                <div class="orb orb-b"></div>
+                <div class="hero-kicker">Senin listelerin</div>
+                <h1 class="hero-title">Çalma Listelerim</h1>
+                <div class="hero-meta"><span>@Model.Count liste</span></div>
+            </section>
+
+            <section class="sec">
+                <div class="new-row">
+                    <input type="text" id="newPlaylistName" placeholder="Yeni çalma listesi adı" autocomplete="off" />
+                    <button type="button" id="newPlaylistBtn">Oluştur</button>
+                </div>
+
+                @if (Model.Count == 0)
+                {
+                    <div class="empty" id="empty"><i class="bi bi-collection-play"></i>Henüz çalma listen yok.</div>
+                }
+                else
+                {
+                    <div class="grid" id="grid">
+                        @for (int i = 0; i < Model.Count; i++)
+                        {
+                            var p = Model[i];
+                            <a class="pl-card" href="/Playlist/Detail/@p.PlaylistId" style="animation-delay:@(i * 55)ms">
+                                <button class="pl-del" type="button" data-id="@p.PlaylistId" aria-label="Sil"><i class="bi bi-trash"></i></button>
+                                <div class="pl-art"><i class="bi bi-music-note-beamed"></i></div>
+                                <div class="pl-name">@p.Name</div>
+                                <div class="pl-sub">@p.SongCount şarkı</div>
+                            </a>
+                        }
+                    </div>
+                }
+            </section>
+
+        </main>
+
+        <div class="player">
+            <div class="np">
+                <div class="np-art" id="npArt"><i class="bi bi-music-note-beamed"></i></div>
+                <div style="min-width:0">
+                    <div class="np-name" id="npName">Bir şarkı seç</div>
+                    <div class="np-sub">
+                        <span id="npSub">Çalan bir şey yok</span>
+                        <span class="eq" id="eq"><span></span><span></span><span></span><span></span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="pl-center">
+                <button class="pl-play" id="plPlay" aria-label="Çal"><i class="bi bi-play-fill" id="plIcon"></i></button>
+            </div>
+        </div>
+
+    </div>
+
+    <audio id="audio"></audio>
+
+    <script>
+        var main = document.getElementById('main');
+        var topbar = document.getElementById('topbar');
+        main.addEventListener('scroll', function () {
+            topbar.classList.toggle('stuck', main.scrollTop > 8);
+        });
+
+        var avatarBtn = document.getElementById('avatarBtn');
+        var userDropdown = document.getElementById('userDropdown');
+        if (avatarBtn && userDropdown) {
+            avatarBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                userDropdown.classList.toggle('show');
+            });
+            document.addEventListener('click', function () { userDropdown.classList.remove('show'); });
+        }
+
+        var audio = document.getElementById('audio');
+        var eq = document.getElementById('eq');
+        var npArt = document.getElementById('npArt');
+        var plPlay = document.getElementById('plPlay');
+        var plIcon = document.getElementById('plIcon');
+
+        function setPlaying(on) {
+            eq.classList.toggle('on', on);
+            npArt.classList.toggle('spin', on);
+            plIcon.className = on ? 'bi bi-pause-fill' : 'bi bi-play-fill';
+        }
+
+        audio.addEventListener('play', function () { setPlaying(true); });
+        audio.addEventListener('pause', function () { setPlaying(false); });
+
+        plPlay.addEventListener('click', function () {
+            if (!audio.src) { return; }
+            if (audio.paused) { audio.play().catch(function () { }); } else { audio.pause(); }
+        });
+
+        document.getElementById('newPlaylistBtn').addEventListener('click', async function () {
+            var input = document.getElementById('newPlaylistName');
+            var name = input.value.trim();
+            if (!name) { return; }
+            var res = await fetch('/Playlist/Create?name=' + encodeURIComponent(name), { method: 'POST' });
+            if (res.status === 401) { window.location.href = '/Login/SignIn'; return; }
+            if (!res.ok) { return; }
+            if (window.spaNavigate) { window.spaNavigate('/Playlist/Index'); } else { window.location.reload(); }
+        });
+
+        document.querySelectorAll('.pl-del').forEach(function (btn) {
+            btn.addEventListener('click', async function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (!confirm('Bu çalma listesini silmek istediğine emin misin?')) { return; }
+                await fetch('/Playlist/Delete/' + this.dataset.id, { method: 'POST' });
+                if (window.spaNavigate) { window.spaNavigate('/Playlist/Index'); } else { window.location.reload(); }
+            });
+        });
+
+        (function () {
+            var STORAGE_KEY = 'echoaNowPlaying';
+            var audioEl = document.getElementById('audio');
+            if (!audioEl) return;
+
+            var saved = sessionStorage.getItem(STORAGE_KEY);
+            if (!audioEl.src && saved) {
+                try {
+                    var state = JSON.parse(saved);
+                    if (state.src) {
+                        audioEl.src = state.src;
+                        audioEl.currentTime = state.time || 0;
+                        if (state.playing) {
+                            audioEl.play().catch(function () { });
+                        }
+                        var npNameEl = document.getElementById('npName');
+                        var npSubEl = document.getElementById('npSub');
+                        if (npNameEl && state.name) { npNameEl.textContent = state.name; }
+                        if (npSubEl && state.artist) { npSubEl.textContent = state.artist; }
+                    }
+                } catch (e) { }
+            }
+
+            window.addEventListener('pagehide', function () {
+                if (!audioEl.src) return;
+                sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    src: audioEl.src,
+                    time: audioEl.currentTime,
+                    playing: !audioEl.paused,
+                    name: (document.getElementById('npName') || {}).textContent,
+                    artist: (document.getElementById('npSub') || {}).textContent
+                }));
+            });
+        })();
+    </script>
+</body>
+</html>
