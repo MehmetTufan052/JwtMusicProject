@@ -2,6 +2,7 @@
 using JwtMusicNight.WebUI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Net.Http.Headers;
 
 namespace JwtMusicNight.WebUI.Controllers
@@ -37,8 +38,12 @@ namespace JwtMusicNight.WebUI.Controllers
             var json = await response.Content.ReadAsStringAsync();
             var songs = JsonConvert.DeserializeObject<List<ResultSongDto>>(json);
 
+            var favoritesJson = await client.GetStringAsync("https://localhost:7292/api/Song/favorites");
+            var favorites = JsonConvert.DeserializeObject<List<ResultSongDto>>(favoritesJson) ?? new();
+
             ViewBag.PackageName = HttpContext.Session.GetString("PackageName") ?? "Basic";
             ViewBag.PackageLevel = HttpContext.Session.GetInt32("PackageLevel") ?? 0;
+            ViewBag.FavoriteSongIds = favorites.Select(f => f.SongId).ToHashSet();
 
             return View(songs);
         }
@@ -111,16 +116,84 @@ namespace JwtMusicNight.WebUI.Controllers
 
             var songJson = await songResponse.Content.ReadAsStringAsync();
             var recommendationsJson = await client.GetStringAsync($"https://localhost:7292/api/Song/{id}/recommendations");
+            var favoriteJson = await client.GetStringAsync($"https://localhost:7292/api/Song/{id}/favorite-status");
 
             var model = new SongDetailViewModel
             {
                 Song = JsonConvert.DeserializeObject<ResultSongDto>(songJson),
                 Recommendations = JsonConvert.DeserializeObject<List<ResultSongDto>>(recommendationsJson) ?? new(),
                 UserPackageLevel = HttpContext.Session.GetInt32("PackageLevel") ?? 0,
-                UserPackageName = HttpContext.Session.GetString("PackageName") ?? "Basic"
+                UserPackageName = HttpContext.Session.GetString("PackageName") ?? "Basic",
+                IsFavorited = JObject.Parse(favoriteJson)["favorited"].Value<bool>()
             };
 
             return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ToggleFavorite(int id)
+        {
+            var token = HttpContext.Session.GetString("JwtToken");
+            if (string.IsNullOrEmpty(token))
+            {
+                return Unauthorized();
+            }
+
+            var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.PostAsync($"https://localhost:7292/api/Song/favorite/{id}", null);
+            var body = await response.Content.ReadAsStringAsync();
+
+            return new ContentResult
+            {
+                Content = body,
+                ContentType = "application/json",
+                StatusCode = (int)response.StatusCode
+            };
+        }
+
+        public async Task<IActionResult> Favorites()
+        {
+            var token = HttpContext.Session.GetString("JwtToken");
+            if (string.IsNullOrEmpty(token))
+                return RedirectToAction("SignIn", "Login");
+
+            var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.GetAsync("https://localhost:7292/api/Song/favorites");
+            if (!response.IsSuccessStatusCode)
+                return RedirectToAction("SignIn", "Login");
+
+            var json = await response.Content.ReadAsStringAsync();
+            var songs = JsonConvert.DeserializeObject<List<ResultSongDto>>(json) ?? new();
+
+            ViewBag.PackageName = HttpContext.Session.GetString("PackageName") ?? "Basic";
+            ViewBag.PackageLevel = HttpContext.Session.GetInt32("PackageLevel") ?? 0;
+
+            return View(songs);
+        }
+
+        public async Task<IActionResult> History()
+        {
+            var token = HttpContext.Session.GetString("JwtToken");
+            if (string.IsNullOrEmpty(token))
+                return RedirectToAction("SignIn", "Login");
+
+            var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.GetAsync("https://localhost:7292/api/Song/history");
+            if (!response.IsSuccessStatusCode)
+                return RedirectToAction("SignIn", "Login");
+
+            var json = await response.Content.ReadAsStringAsync();
+            var history = JsonConvert.DeserializeObject<List<ListeningHistoryDto>>(json) ?? new();
+
+            ViewBag.PackageName = HttpContext.Session.GetString("PackageName") ?? "Basic";
+
+            return View(history);
         }
     }
 }

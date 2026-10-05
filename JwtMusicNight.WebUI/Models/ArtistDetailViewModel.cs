@@ -8,5 +8,6 @@ namespace JwtMusicNight.WebUI.Models
         public List<ResultSongDto> Songs { get; set; }
         public int UserPackageLevel { get; set; }
         public string UserPackageName { get; set; }
+        public bool IsFollowing { get; set; }
     }
 }

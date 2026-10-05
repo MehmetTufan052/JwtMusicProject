@@ -84,6 +84,61 @@ namespace JwtMusicNight.WebApi.Services.SongServices
             return _mapper.Map<ResultSongDto>(song);
         }
 
+        public async Task<List<ListeningHistoryDto>> GetHistoryAsync(string appUserId, int count = 50)
+        {
+            var history = await _context.ListeningHistories
+                .Include(h => h.Song).ThenInclude(s => s.Artist)
+                .Include(h => h.Song).ThenInclude(s => s.Package)
+                .Where(h => h.AppUserId == appUserId)
+                .OrderByDescending(h => h.ListenDate)
+                .Take(count)
+                .ToListAsync();
+
+            return _mapper.Map<List<ListeningHistoryDto>>(history);
+        }
+
+        public async Task<bool> ToggleFavoriteAsync(string appUserId, int songId)
+        {
+            var existing = await _context.SongFavorites
+                .FirstOrDefaultAsync(f => f.AppUserId == appUserId && f.SongId == songId);
+
+            if (existing != null)
+            {
+                _context.SongFavorites.Remove(existing);
+                await _context.SaveChangesAsync();
+                return false;
+            }
+
+            await _context.SongFavorites.AddAsync(new SongFavorite
+            {
+                AppUserId = appUserId,
+                SongId = songId,
+                FavoriteDate = DateTime.Now
+            });
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> IsFavoritedAsync(string appUserId, int songId)
+        {
+            return await _context.SongFavorites
+                .AnyAsync(f => f.AppUserId == appUserId && f.SongId == songId);
+        }
+
+        public async Task<List<ResultSongDto>> GetFavoritesAsync(string appUserId)
+        {
+            var songs = await _context.SongFavorites
+                .Include(f => f.Song).ThenInclude(s => s.Artist)
+                .Include(f => f.Song).ThenInclude(s => s.Genre)
+                .Include(f => f.Song).ThenInclude(s => s.Package)
+                .Where(f => f.AppUserId == appUserId)
+                .OrderByDescending(f => f.FavoriteDate)
+                .Select(f => f.Song)
+                .ToListAsync();
+
+            return _mapper.Map<List<ResultSongDto>>(songs);
+        }
+
         public async Task<List<ResultSongDto>> GetRecommendationsAsync(int songId, int count = 5)
         {
             var current = await _context.Songs.FindAsync(songId);

@@ -142,6 +142,34 @@ namespace JwtMusicNight.WebApi.Migrations
                     b.ToTable("Artists");
                 });
 
+            modelBuilder.Entity("JwtMusicNight.WebApi.Entities.ArtistFollow", b =>
+                {
+                    b.Property<int>("ArtistFollowId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ArtistFollowId"), 1L, 1);
+
+                    b.Property<string>("AppUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("ArtistId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FollowDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ArtistFollowId");
+
+                    b.HasIndex("ArtistId");
+
+                    b.HasIndex("AppUserId", "ArtistId")
+                        .IsUnique();
+
+                    b.ToTable("ArtistFollows");
+                });
+
             modelBuilder.Entity("JwtMusicNight.WebApi.Entities.Genre", b =>
                 {
                     b.Property<int>("GenreId")
@@ -257,6 +285,34 @@ namespace JwtMusicNight.WebApi.Migrations
                     b.HasIndex("PackageId");
 
                     b.ToTable("Songs");
+                });
+
+            modelBuilder.Entity("JwtMusicNight.WebApi.Entities.SongFavorite", b =>
+                {
+                    b.Property<int>("SongFavoriteId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SongFavoriteId"), 1L, 1);
+
+                    b.Property<string>("AppUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("FavoriteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("SongId")
+                        .HasColumnType("int");
+
+                    b.HasKey("SongFavoriteId");
+
+                    b.HasIndex("SongId");
+
+                    b.HasIndex("AppUserId", "SongId")
+                        .IsUnique();
+
+                    b.ToTable("SongFavorites");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -403,6 +459,25 @@ namespace JwtMusicNight.WebApi.Migrations
                     b.Navigation("Package");
                 });
 
+            modelBuilder.Entity("JwtMusicNight.WebApi.Entities.ArtistFollow", b =>
+                {
+                    b.HasOne("JwtMusicNight.WebApi.Entities.AppUser", "AppUser")
+                        .WithMany()
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("JwtMusicNight.WebApi.Entities.Artist", "Artist")
+                        .WithMany()
+                        .HasForeignKey("ArtistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+
+                    b.Navigation("Artist");
+                });
+
             modelBuilder.Entity("JwtMusicNight.WebApi.Entities.ListeningHistory", b =>
                 {
                     b.HasOne("JwtMusicNight.WebApi.Entities.AppUser", "AppUser")
@@ -447,6 +522,25 @@ namespace JwtMusicNight.WebApi.Migrations
                     b.Navigation("Genre");
 
                     b.Navigation("Package");
+                });
+
+            modelBuilder.Entity("JwtMusicNight.WebApi.Entities.SongFavorite", b =>
+                {
+                    b.HasOne("JwtMusicNight.WebApi.Entities.AppUser", "AppUser")
+                        .WithMany()
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("JwtMusicNight.WebApi.Entities.Song", "Song")
+                        .WithMany()
+                        .HasForeignKey("SongId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+
+                    b.Navigation("Song");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

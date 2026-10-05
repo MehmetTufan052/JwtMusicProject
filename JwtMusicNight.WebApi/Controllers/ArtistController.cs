@@ -3,6 +3,7 @@ using JwtMusicNight.WebApi.Services.ArtistServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace JwtMusicNight.WebApi.Controllers
 {
@@ -43,6 +44,33 @@ namespace JwtMusicNight.WebApi.Controllers
             }
 
             return Ok(value);
+        }
+
+        [HttpPost("follow/{id}")]
+        [Authorize]
+        public async Task<IActionResult> ToggleFollow(int id)
+        {
+            var appUserId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var following = await _artistService.ToggleFollowAsync(appUserId, id);
+            return Ok(new { following });
+        }
+
+        [HttpGet("{id}/follow-status")]
+        [Authorize]
+        public async Task<IActionResult> GetFollowStatus(int id)
+        {
+            var appUserId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var following = await _artistService.IsFollowingAsync(appUserId, id);
+            return Ok(new { following });
+        }
+
+        [HttpGet("followed")]
+        [Authorize]
+        public async Task<IActionResult> GetFollowed()
+        {
+            var appUserId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var values = await _artistService.GetFollowedArtistsAsync(appUserId);
+            return Ok(values);
         }
     }
 }

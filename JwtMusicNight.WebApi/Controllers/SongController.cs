@@ -128,5 +128,41 @@ namespace JwtMusicNight.WebApi.Controllers
             var values=await _songService.GetRecommendationsAsync(id);
             return Ok(values);
         }
+
+        [HttpGet("history")]
+        [Authorize]
+        public async Task<IActionResult> GetHistory()
+        {
+            var appUserId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var values = await _songService.GetHistoryAsync(appUserId);
+            return Ok(values);
+        }
+
+        [HttpPost("favorite/{id}")]
+        [Authorize]
+        public async Task<IActionResult> ToggleFavorite(int id)
+        {
+            var appUserId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var favorited = await _songService.ToggleFavoriteAsync(appUserId, id);
+            return Ok(new { favorited });
+        }
+
+        [HttpGet("{id}/favorite-status")]
+        [Authorize]
+        public async Task<IActionResult> GetFavoriteStatus(int id)
+        {
+            var appUserId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var favorited = await _songService.IsFavoritedAsync(appUserId, id);
+            return Ok(new { favorited });
+        }
+
+        [HttpGet("favorites")]
+        [Authorize]
+        public async Task<IActionResult> GetFavorites()
+        {
+            var appUserId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var values = await _songService.GetFavoritesAsync(appUserId);
+            return Ok(values);
+        }
     }
 }

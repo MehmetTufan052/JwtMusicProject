@@ -64,16 +64,66 @@ namespace JwtMusicNight.WebUI.Controllers
 
             var artistJson = await artistResponse.Content.ReadAsStringAsync();
             var songsJson = await client.GetStringAsync("https://localhost:7292/api/Song/byartist/" + id);
+            var followJson = await client.GetStringAsync($"https://localhost:7292/api/Artist/{id}/follow-status");
 
             var model = new ArtistDetailViewModel
             {
                 Artist = JsonConvert.DeserializeObject<ResultArtistDto>(artistJson),
                 Songs = JsonConvert.DeserializeObject<List<ResultSongDto>>(songsJson),
                 UserPackageLevel = HttpContext.Session.GetInt32("PackageLevel") ?? 0,
-                UserPackageName = HttpContext.Session.GetString("PackageName") ?? "Basic"
+                UserPackageName = HttpContext.Session.GetString("PackageName") ?? "Basic",
+                IsFollowing = JObject.Parse(followJson)["following"].Value<bool>()
             };
 
             return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ToggleFollow(int id)
+        {
+            var token = HttpContext.Session.GetString("JwtToken");
+            if (string.IsNullOrEmpty(token))
+            {
+                return Unauthorized();
+            }
+
+            var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.PostAsync($"https://localhost:7292/api/Artist/follow/{id}", null);
+            var body = await response.Content.ReadAsStringAsync();
+
+            return new ContentResult
+            {
+                Content = body,
+                ContentType = "application/json",
+                StatusCode = (int)response.StatusCode
+            };
+        }
+
+        public async Task<IActionResult> Followed()
+        {
+            var token = HttpContext.Session.GetString("JwtToken");
+            if (string.IsNullOrEmpty(token))
+            {
+                return RedirectToAction("SignIn", "Login");
+            }
+
+            var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.GetAsync("https://localhost:7292/api/Artist/followed");
+            if (!response.IsSuccessStatusCode)
+            {
+                return RedirectToAction("SignIn", "Login");
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            var artists = JsonConvert.DeserializeObject<List<ResultArtistDto>>(json) ?? new();
+
+            ViewBag.PackageName = HttpContext.Session.GetString("PackageName") ?? "Basic";
+
+            return View(artists);
         }
     }
 }

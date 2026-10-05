@@ -35,5 +35,45 @@ namespace JwtMusicNight.WebApi.Services.ArtistServices
             var value = await _context.Artists.FirstOrDefaultAsync(x => x.ArtistId == id);
             return _mapper.Map<ResultArtistDto>(value);
         }
+
+        public async Task<bool> ToggleFollowAsync(string appUserId, int artistId)
+        {
+            var existing = await _context.ArtistFollows
+                .FirstOrDefaultAsync(f => f.AppUserId == appUserId && f.ArtistId == artistId);
+
+            if (existing != null)
+            {
+                _context.ArtistFollows.Remove(existing);
+                await _context.SaveChangesAsync();
+                return false;
+            }
+
+            await _context.ArtistFollows.AddAsync(new ArtistFollow
+            {
+                AppUserId = appUserId,
+                ArtistId = artistId,
+                FollowDate = DateTime.Now
+            });
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> IsFollowingAsync(string appUserId, int artistId)
+        {
+            return await _context.ArtistFollows
+                .AnyAsync(f => f.AppUserId == appUserId && f.ArtistId == artistId);
+        }
+
+        public async Task<List<ResultArtistDto>> GetFollowedArtistsAsync(string appUserId)
+        {
+            var artists = await _context.ArtistFollows
+                .Include(f => f.Artist)
+                .Where(f => f.AppUserId == appUserId)
+                .OrderByDescending(f => f.FollowDate)
+                .Select(f => f.Artist)
+                .ToListAsync();
+
+            return _mapper.Map<List<ResultArtistDto>>(artists);
+        }
     }
 }

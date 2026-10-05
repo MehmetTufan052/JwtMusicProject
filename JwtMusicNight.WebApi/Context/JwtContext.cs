@@ -28,11 +28,23 @@ namespace JwtMusicNight.WebApi.Context
                 .WithMany(p => p.Users)
                 .HasForeignKey(u => u.PackageId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Bir kullanici bir sanatciyi sadece bir kere takip edebilir
+            builder.Entity<ArtistFollow>()
+                .HasIndex(f => new { f.AppUserId, f.ArtistId })
+                .IsUnique();
+
+            // Bir kullanici bir sarkiyi sadece bir kere begenebilir
+            builder.Entity<SongFavorite>()
+                .HasIndex(f => new { f.AppUserId, f.SongId })
+                .IsUnique();
         }
         public DbSet<Artist> Artists { get; set; }
         public DbSet<Song> Songs { get; set; }
         public DbSet<Package> Packages { get; set; }
         public DbSet<Genre> Genres { get; set; }
         public DbSet<ListeningHistory> ListeningHistories { get; set; }
+        public DbSet<ArtistFollow> ArtistFollows { get; set; }
+        public DbSet<SongFavorite> SongFavorites { get; set; }
     }
 } 

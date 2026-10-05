@@ -194,6 +194,15 @@
                 color: var(--txt-2);
             }
 
+        .fav-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 50px; height: 50px; border-radius: 50%; border: 1px solid var(--line);
+            background: transparent; color: var(--txt-2); font-size: 1.2rem; cursor: pointer;
+            margin-left: 10px; transition: color .18s, border-color .18s;
+        }
+        .fav-btn:hover { color: #f43f5e; border-color: #f43f5e; }
+        .fav-btn.on { color: #f43f5e; border-color: #f43f5e; }
+
         .sec-title {
             font-size: 1.3rem;
             font-weight: 800;
@@ -489,6 +498,9 @@
                     <i class="bi @(locked ? "bi-lock-fill" : "bi-play-fill")"></i>
                     @(locked ? "Kilitli" : "Çal")
                 </button>
+                <button class="fav-btn @(Model.IsFavorited ? "on" : "")" id="favBtn" type="button" data-id="@s.SongId" aria-label="Beğen">
+                    <i class="bi @(Model.IsFavorited ? "bi-heart-fill" : "bi-heart")" id="favIcon"></i>
+                </button>
             </div>
         </div>
 
@@ -611,6 +623,22 @@
 
         document.getElementById('mainPlay').addEventListener('click', function () {
             requestListen(this.dataset.id, this.dataset.name, this.dataset.artist, this.dataset.pkg);
+        });
+
+        var favBtn = document.getElementById('favBtn');
+        var favIcon = document.getElementById('favIcon');
+        favBtn.addEventListener('click', async function () {
+            favBtn.disabled = true;
+            try {
+                var res = await fetch('/Song/ToggleFavorite/' + favBtn.dataset.id, { method: 'POST' });
+                if (res.status === 401) { window.location.href = '/Login/SignIn'; return; }
+                if (!res.ok) { return; }
+                var data = await res.json();
+                favBtn.classList.toggle('on', data.favorited);
+                favIcon.className = 'bi ' + (data.favorited ? 'bi-heart-fill' : 'bi-heart');
+            } finally {
+                favBtn.disabled = false;
+            }
         });
 
         document.querySelectorAll('.rec-listen').forEach(function (el) {

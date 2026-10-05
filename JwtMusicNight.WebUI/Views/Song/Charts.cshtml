@@ -6,6 +6,7 @@
     var userLevel = (int)ViewBag.PackageLevel;
     var userPkg = (string)ViewBag.PackageName;
     var genres = Model.Select(s => s.GenreName).Where(g => g != null).Distinct().OrderBy(g => g).ToList();
+    var favoriteIds = (HashSet<int>)(ViewBag.FavoriteSongIds ?? new HashSet<int>());
 }
 <!DOCTYPE html>
 <html lang="tr">
@@ -245,6 +246,11 @@
             color: #fbbf24; backdrop-filter: blur(8px); font-size: .8rem;
         }
 
+        .card-pkg {
+            position: absolute; left: 9px; bottom: 9px; z-index: 2;
+            backdrop-filter: blur(8px);
+        }
+
         .card-play {
             position: absolute; right: 10px; bottom: 10px; width: 45px; height: 45px; border: 0;
             border-radius: 50%; display: grid; place-items: center; color: #fff; cursor: pointer;
@@ -308,6 +314,9 @@
         }
 
         .t-title .bi-lock-fill { color: var(--txt-3); font-size: .8rem; }
+        .fav-icon { color: var(--txt-3); font-size: .9rem; cursor: pointer; margin-left: 2px; }
+        .fav-icon:hover { color: #f43f5e; }
+        .fav-icon.on { color: #f43f5e; }
         .t-sub { font-size: .8rem; color: var(--txt-3); margin-top: 2px; }
 
         .badge {
@@ -464,6 +473,9 @@
                 <a class="nav-item" href="/Artist/ArtistListV2"><i class="bi bi-person-badge"></i>Sanatçılar</a>
                 <a class="nav-item" href="/Genre/GenreList"><i class="bi bi-collection"></i>Türler</a>
                 <a class="nav-item on" href="/Song/Charts"><i class="bi bi-music-note-list"></i>Top Charts</a>
+                <a class="nav-item" href="/Song/History"><i class="bi bi-clock-history"></i>Geçmiş</a>
+                <a class="nav-item" href="/Artist/Followed"><i class="bi bi-person-heart"></i>Takip Ettiklerim</a>
+                <a class="nav-item" href="/Song/Favorites"><i class="bi bi-heart"></i>Beğendiklerim</a>
             </div>
 
             <div class="rail-scroll">
@@ -538,6 +550,7 @@
                                         <div class="card-fallback">@featured.SongName.Substring(0, 1)</div>
                                     }
                                     <span class="card-rank">#@(i + 1)</span>
+                                    <span class="badge card-pkg b-@featured.PackageName.ToLower()">@featured.PackageName</span>
                                     @if (featuredLocked)
                                     {
                                         <span class="card-lock" title="@featured.PackageName paketi gerekiyor"><i class="bi bi-lock-fill"></i></span>
@@ -552,7 +565,6 @@
                                 <div class="card-artist">@featured.ArtistName</div>
                                 <div class="card-meta">
                                     <span class="card-genre">@featured.GenreName</span>
-                                    <span class="badge b-@featured.PackageName.ToLower()">@featured.PackageName</span>
                                 </div>
                             </a>
                         }
@@ -590,6 +602,7 @@
                         {
                             var s = ranked[i];
                             var locked = userLevel < s.PackageLevel;
+                            var favorited = favoriteIds.Contains(s.SongId);
                             <div class="trow @(locked ? "locked" : "")"
                                  style="animation-delay:@(i * 30)ms"
                                  data-name="@s.SongName.ToLower()" data-artist="@s.ArtistName.ToLower()" data-g="@(s.GenreName == null ? "" : s.GenreName.ToLower())"
@@ -616,6 +629,7 @@
                                             {
                                                 <i class="bi bi-lock-fill" title="@s.PackageName paketi gerekiyor"></i>
                                             }
+                                            <i class="bi @(favorited ? "bi-heart-fill" : "bi-heart") fav-icon @(favorited ? "on" : "")" data-id="@s.SongId" title="Beğen"></i>
                                         </div>
                                         <div class="t-sub">@s.ArtistName</div>
                                     </div>
@@ -883,9 +897,21 @@
             });
         });
 
+        document.querySelectorAll('.fav-icon').forEach(function (el) {
+            el.addEventListener('click', async function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var res = await fetch('/Song/ToggleFavorite/' + this.dataset.id, { method: 'POST' });
+                if (res.status === 401) { window.location.href = '/Login/SignIn'; return; }
+                if (!res.ok) { return; }
+                var data = await res.json();
+                this.className = 'bi ' + (data.favorited ? 'bi-heart-fill' : 'bi-heart') + ' fav-icon' + (data.favorited ? ' on' : '');
+            });
+        });
+
         document.querySelectorAll('.trow').forEach(function (row) {
             row.addEventListener('click', function (e) {
-                if (e.target.closest('.listen')) { return; }
+                if (e.target.closest('.listen') || e.target.closest('.fav-icon')) { return; }
                 if (window.spaNavigate) { window.spaNavigate(this.dataset.href); }
                 else { window.location.href = this.dataset.href; }
             });

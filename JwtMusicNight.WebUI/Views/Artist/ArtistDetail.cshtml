@@ -1055,7 +1055,10 @@
                 <a class="nav-item" href="/Home/Index"><i class="bi bi-house-door"></i>Ana sayfa</a>
                 <a class="nav-item on" href="/Artist/ArtistListV2"><i class="bi bi-person-badge"></i>Sanatçılar</a>
                 <a class="nav-item" href="/Genre/GenreList"><i class="bi bi-collection"></i>Türler</a>
-                <a class="nav-item" href="/Song/SongList"><i class="bi bi-music-note-list"></i>Şarkılar</a>
+                <a class="nav-item" href="/Song/Charts"><i class="bi bi-music-note-list"></i>Şarkılar</a>
+                <a class="nav-item" href="/Song/History"><i class="bi bi-clock-history"></i>Geçmiş</a>
+                <a class="nav-item" href="/Artist/Followed"><i class="bi bi-person-heart"></i>Takip Ettiklerim</a>
+                <a class="nav-item" href="/Song/Favorites"><i class="bi bi-heart"></i>Beğendiklerim</a>
             </div>
 
             <div class="rail-scroll">
@@ -1118,7 +1121,7 @@
                 <button class="big-play" id="heroPlay" data-id="@(songs.Count > 0 ? songs.OrderByDescending(s => s.ListenCount).First().SongId : 0)" aria-label="Çal">
                     <i class="bi bi-play-fill"></i>
                 </button>
-                <button class="ghost-btn" id="followBtn" type="button">Takip et</button>
+                <button class="ghost-btn @(Model.IsFollowing ? "on" : "")" id="followBtn" type="button" data-id="@Model.Artist.ArtistId">@(Model.IsFollowing ? "Takip ediliyor" : "Takip et")</button>
                 <button class="icon-btn" aria-label="Daha fazla"><i class="bi bi-three-dots"></i></button>
             </div>
 
@@ -1309,9 +1312,18 @@
         });
 
         var follow = document.getElementById('followBtn');
-        follow.addEventListener('click', function () {
-            follow.classList.toggle('on');
-            follow.textContent = follow.classList.contains('on') ? 'Takip ediliyor' : 'Takip et';
+        follow.addEventListener('click', async function () {
+            follow.disabled = true;
+            try {
+                var res = await fetch('/Artist/ToggleFollow/' + follow.dataset.id, { method: 'POST' });
+                if (res.status === 401) { window.location.href = '/Login/SignIn'; return; }
+                if (!res.ok) { return; }
+                var data = await res.json();
+                follow.classList.toggle('on', data.following);
+                follow.textContent = data.following ? 'Takip ediliyor' : 'Takip et';
+            } finally {
+                follow.disabled = false;
+            }
         });
 
         var modal = document.getElementById('lockModal');

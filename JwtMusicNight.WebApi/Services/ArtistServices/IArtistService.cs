@@ -8,5 +8,8 @@ namespace JwtMusicNight.WebApi.Services.ArtistServices
         Task CreateArtistAsync(CreateArtistDto createArtistDto);
 
         Task<ResultArtistDto> GetArtistByIdAsync(int id);
+        Task<bool> ToggleFollowAsync(string appUserId, int artistId);
+        Task<bool> IsFollowingAsync(string appUserId, int artistId);
+        Task<List<ResultArtistDto>> GetFollowedArtistsAsync(string appUserId);
     }
 }
