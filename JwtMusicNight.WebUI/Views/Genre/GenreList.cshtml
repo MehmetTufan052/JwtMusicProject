@@ -14,29 +14,29 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <style>
-        :root { --bg:#000; --panel:#121212; --panel2:#181818; --panel3:#232323; --line:rgba(255,255,255,.09); --txt:#fff; --muted:#aaa9b7; --muted2:#696978; --accent:#a855f7; --pink:#ec4899; --player:76px; --rail:232px; }
+        :root { --bg:#000; --panel:#121212; --panel2:#181818; --panel3:#232323; --line:rgba(255,255,255,.09); --txt:#fff; --muted:#aaa9b7; --muted2:#696978; --accent:#a855f7; --pink:#ec4899; --player:76px; --rail:258px; }
         * { box-sizing:border-box; margin:0; padding:0; }
         html,body { height:100%; }
         body { background:var(--bg); color:var(--txt); font-family:'Figtree',system-ui,sans-serif; overflow:hidden; }
         a { color:inherit; text-decoration:none; }
         button,input { font:inherit; }
-        .shell { width:100%; max-width:100vw; height:100dvh; padding:8px; display:grid; grid-template-columns:var(--rail) minmax(0,1fr); grid-template-rows:minmax(0,1fr) var(--player); gap:8px; overflow:hidden; }
-        .sidebar { min-height:0; display:flex; flex-direction:column; gap:8px; }
-        .side-box { padding:16px 12px; border-radius:10px; background:var(--panel); }
+        .shell { width:100%; max-width:100vw; height:100dvh; padding:10px; display:grid; grid-template-columns:var(--rail) minmax(0,1fr); grid-template-rows:minmax(0,1fr) var(--player); gap:10px; overflow:hidden; }
+        .sidebar { min-height:0; display:flex; flex-direction:column; gap:10px; }
+        .side-box { padding:18px 14px; border-radius:10px; background:var(--panel); }
         .brand { padding:4px 8px 14px; display:flex; align-items:center; gap:10px; font-weight:900; font-size:1.18rem; }
         .brand-mark { width:27px; height:27px; border-radius:50%; display:grid; place-items:center; background:linear-gradient(135deg,var(--accent),var(--pink)); box-shadow:0 0 25px rgba(168,85,247,.35); }
-        .nav-item { position:relative; padding:10px; border-radius:7px; display:flex; align-items:center; gap:14px; color:var(--muted); font-size:.91rem; font-weight:650; }
+        .nav-item { position:relative; padding:11px 12px; border-radius:7px; display:flex; align-items:center; gap:15px; color:var(--muted); font-size:.91rem; font-weight:650; }
         .nav-item i { font-size:1.16rem; }
         .nav-item:hover,.nav-item.active { color:#fff; background:var(--panel3); }
         .nav-item.active::before { content:''; position:absolute; left:0; width:3px; height:60%; border-radius:3px; background:linear-gradient(var(--accent),var(--pink)); }
-        .side-feature { flex:1; min-height:0; padding:20px; border-radius:10px; display:flex; flex-direction:column; justify-content:flex-end; overflow:hidden; position:relative; background:linear-gradient(150deg,#24112d,#15121b 60%); }
-        .side-feature::before { content:''; position:absolute; width:190px; height:190px; border-radius:50%; top:-75px; right:-75px; background:rgba(236,72,153,.35); filter:blur(35px); }
+        .side-feature { flex:1; min-height:0; padding:20px; border-radius:10px; display:flex; flex-direction:column; justify-content:flex-end; overflow:hidden; position:relative; background:linear-gradient(150deg,#121015,#0b0b0e 64%); }
+        .side-feature::before { content:''; position:absolute; width:190px; height:190px; border-radius:50%; top:-90px; right:-85px; background:rgba(168,85,247,.16); filter:blur(42px); }
         .side-icon { width:55px; height:55px; border-radius:16px; display:grid; place-items:center; background:linear-gradient(135deg,var(--accent),var(--pink)); font-size:1.35rem; margin-bottom:18px; }
         .side-feature h3 { font-size:1.15rem; }
         .side-feature p { margin-top:8px; color:var(--muted); line-height:1.55; font-size:.79rem; }
 
         .main { min-width:0; min-height:0; overflow-x:hidden; overflow-y:auto; border-radius:10px; background:var(--panel); }
-        .topbar { position:sticky; top:0; z-index:20; padding:14px 24px; display:flex; align-items:center; gap:14px; background:rgba(18,18,18,.84); backdrop-filter:blur(18px); border-bottom:1px solid transparent; }
+        .topbar { position:sticky; top:0; z-index:20; padding:16px 32px; display:flex; align-items:center; gap:14px; background:rgba(18,18,18,.84); backdrop-filter:blur(18px); border-bottom:1px solid transparent; }
         .topbar.stuck { border-bottom-color:var(--line); }
         .search { position:relative; flex:1; max-width:390px; min-width:0; }
         .search i { position:absolute; left:13px; top:50%; transform:translateY(-50%); color:var(--muted2); }
@@ -54,8 +54,8 @@
         .user-dropdown-admin { display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:8px; font-size:.82rem; color:var(--txt); cursor:pointer; }
         .user-dropdown-admin:hover { background:var(--panel3); color:var(--accent); }
 
-        .hero { position:relative; overflow:hidden; padding:58px 24px 46px; background:linear-gradient(125deg,#261035 0,#17121d 45%,#121212 78%); }
-        .hero::after { content:''; position:absolute; width:360px; height:360px; right:-80px; top:-170px; border-radius:50%; background:rgba(236,72,153,.25); filter:blur(70px); }
+        .hero { position:relative; overflow:hidden; padding:68px 32px 52px; background:linear-gradient(125deg,#15101b 0,#100e14 48%,#0c0c0f 80%); border-bottom:1px solid rgba(255,255,255,.04); }
+        .hero::after { content:''; position:absolute; width:360px; height:360px; right:-90px; top:-190px; border-radius:50%; background:rgba(168,85,247,.14); filter:blur(78px); }
         .hero>* { position:relative; z-index:2; }
         .eyebrow { color:#d7b7f5; font-size:.73rem; font-weight:850; letter-spacing:1.8px; text-transform:uppercase; }
         h1 { margin-top:10px; font-size:clamp(3rem,6vw,5.1rem); line-height:.95; letter-spacing:-3.5px; }
@@ -63,12 +63,12 @@
         .hero-meta { display:flex; gap:10px; margin-top:23px; }
         .hero-meta span { padding:7px 12px; border:1px solid var(--line); border-radius:50px; background:rgba(255,255,255,.04); font-size:.75rem; color:#d1d0da; }
 
-        .content { width:100%; min-width:0; padding:33px 24px 42px; }
+        .content { width:100%; min-width:0; padding:38px 32px 46px; }
         .section-head { display:flex; justify-content:space-between; align-items:end; gap:20px; margin:32px 0 18px; }
         h2 { font-size:1.5rem; letter-spacing:-.7px; }
         .count { color:var(--muted2); font-size:.78rem; }
-        .genre-picker { position:relative; overflow:hidden; padding:26px; border:1px solid rgba(192,132,252,.22); border-radius:22px; background:linear-gradient(130deg,rgba(168,85,247,.13),rgba(236,72,153,.06) 48%,rgba(255,255,255,.025)); box-shadow:0 24px 60px rgba(0,0,0,.2); }
-        .genre-picker::before { content:''; position:absolute; width:220px; height:220px; top:-135px; right:-65px; border-radius:50%; background:rgba(236,72,153,.3); filter:blur(58px); pointer-events:none; }
+        .genre-picker { position:relative; overflow:hidden; padding:26px; border:1px solid var(--line); border-radius:20px; background:linear-gradient(135deg,rgba(255,255,255,.045),rgba(255,255,255,.018)); box-shadow:0 24px 60px rgba(0,0,0,.26); }
+        .genre-picker::before { content:''; position:absolute; width:220px; height:220px; top:-145px; right:-75px; border-radius:50%; background:rgba(168,85,247,.16); filter:blur(64px); pointer-events:none; }
         .picker-head { position:relative; z-index:2; display:flex; align-items:center; gap:15px; margin-bottom:21px; }
         .picker-icon { width:48px; height:48px; flex:none; border-radius:15px; display:grid; place-items:center; color:#fff; background:linear-gradient(135deg,var(--accent),var(--pink)); box-shadow:0 12px 28px rgba(168,85,247,.28); font-size:1.15rem; }
         .picker-kicker { color:#d8b4fe; font-size:.67rem; font-weight:850; letter-spacing:1.7px; text-transform:uppercase; }
@@ -81,7 +81,7 @@
         .chip.active { color:#fff; border-color:transparent; background:linear-gradient(125deg,var(--accent),var(--pink)); box-shadow:0 10px 28px rgba(168,85,247,.27); transform:translateY(-2px); }
         .chip.active i { color:#fff; }
 
-        .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(155px,1fr)); gap:23px 16px; }
+        .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:26px 20px; }
         .song { min-width:0; cursor:pointer; animation:rise .5s cubic-bezier(.22,1,.36,1) both; }
         .song.hidden { display:none; }
         .cover { position:relative; aspect-ratio:1; overflow:hidden; border-radius:13px; background:linear-gradient(135deg,var(--accent),var(--pink)); box-shadow:0 15px 35px rgba(0,0,0,.25); transition:transform .24s; }
@@ -147,7 +147,7 @@
         </aside>
 
         <main class="main" id="main">
-            <div class="topbar" id="topbar"><div class="search"><i class="bi bi-search"></i><input id="search" placeholder="Şarkı veya sanatçı ara" /></div><div class="spacer"></div><div class="pkg"><i class="bi bi-gem"></i>&nbsp; @Model.UserPackageName</div><div class="user-menu" id="userMenu"><div class="avatar" id="avatarBtn"><i class="bi bi-person-fill"></i></div><div class="user-dropdown" id="userDropdown">@if ((bool)(ViewBag.IsAdmin ?? false)) { <a class="user-dropdown-admin" href="/Admin/Index"><i class="bi bi-gear"></i>Admin Paneli</a> }<a class="user-dropdown-logout" href="/Login/Logout"><i class="bi bi-box-arrow-right"></i>Çıkış yap</a></div></div></div>
+            <div class="topbar" id="topbar"><div class="search"><i class="bi bi-search"></i><input id="search" placeholder="Şarkı veya sanatçı ara" /></div><div class="spacer"></div><a class="pkg" href="/Package/Index" title="Paketleri incele"><i class="bi bi-gem"></i>&nbsp; @Model.UserPackageName</a><div class="user-menu" id="userMenu"><div class="avatar" id="avatarBtn"><i class="bi bi-person-fill"></i></div><div class="user-dropdown" id="userDropdown">@if ((bool)(ViewBag.IsAdmin ?? false)) { <a class="user-dropdown-admin" href="/Admin/Index"><i class="bi bi-gear"></i>Admin Paneli</a> }<a class="user-dropdown-logout" href="/Login/Logout"><i class="bi bi-box-arrow-right"></i>Çıkış yap</a></div></div></div>
             <section class="hero"><div class="eyebrow">Müzik koleksiyonu</div><h1>Türünü seç.<br />Ritmini bul.</h1><p>Ruh hâline en uygun müziği keşfet. Türler arasında gezin, sevdiğin şarkıya dokun ve dinlemeye başla.</p><div class="hero-meta"><span>@Model.Genres.Count tür</span><span>@Model.Songs.Count şarkı</span></div></section>
             <section class="content">
                 <div class="genre-picker">

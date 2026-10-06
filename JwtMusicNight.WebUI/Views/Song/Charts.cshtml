@@ -7,6 +7,30 @@
     var userPkg = (string)ViewBag.PackageName;
     var genres = Model.Select(s => s.GenreName).Where(g => g != null).Distinct().OrderBy(g => g).ToList();
     var favoriteIds = (HashSet<int>)(ViewBag.FavoriteSongIds ?? new HashSet<int>());
+    string CoverUrl(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+        var path = value.Trim().Trim('"', '\'').Replace('\\', '/');
+        if (Uri.TryCreate(path, UriKind.Absolute, out var absoluteUri) &&
+            (absoluteUri.Scheme == Uri.UriSchemeHttp || absoluteUri.Scheme == Uri.UriSchemeHttps))
+        {
+            return path;
+        }
+
+        path = path.TrimStart('~', '/');
+
+        // Eski kayıtlarda kapaklar /covers altında tutulmuş; gerçek dosyalar wwwroot/images altında.
+        if (path.StartsWith("covers/", StringComparison.OrdinalIgnoreCase))
+        {
+            path = "images/" + path.Substring("covers/".Length);
+        }
+        else if (!path.StartsWith("images/", StringComparison.OrdinalIgnoreCase))
+        {
+            path = "images/" + path;
+        }
+
+        return "/" + path;
+    }
 }
 <!DOCTYPE html>
 <html lang="tr">
@@ -32,7 +56,7 @@
             --ok: #1ed760;
             --danger: #f43f5e;
             --player-h: 76px;
-            --rail-w: 232px;
+            --rail-w: 258px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -55,13 +79,13 @@
             width: 100%;
             max-width: 100vw;
             height: 100dvh;
-            gap: 8px;
-            padding: 8px;
+            gap: 10px;
+            padding: 10px;
             overflow: hidden;
         }
 
-        .rail { grid-row: 1; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
-        .rail-box { background: var(--panel); border-radius: 10px; padding: 16px 12px; }
+        .rail { grid-row: 1; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+        .rail-box { background: var(--panel); border-radius: 10px; padding: 18px 14px; }
 
         .brand {
             display: flex; align-items: center; gap: 10px;
@@ -75,7 +99,7 @@
         }
 
         .nav-item {
-            display: flex; align-items: center; gap: 14px; padding: 9px 10px; border-radius: 6px;
+            display: flex; align-items: center; gap: 15px; padding: 11px 12px; border-radius: 7px;
             color: var(--txt-2); font-weight: 600; font-size: .92rem; position: relative;
             transition: color .18s, background .18s;
         }
@@ -112,8 +136,11 @@
 
         .lib-thumb {
             width: 38px; height: 38px; border-radius: 6px; flex-shrink: 0; display: grid; place-items: center;
-            font-size: .9rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            overflow: hidden; font-size: .9rem; font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
         }
+
+        .lib-thumb img { width: 100%; height: 100%; display: block; object-fit: cover; }
 
         .lib-name { font-size: .86rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .lib-sub { font-size: .74rem; color: var(--txt-3); }
@@ -125,7 +152,7 @@
 
         .topbar {
             position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 14px;
-            padding: 14px 24px; background: rgba(18,18,18,.82); backdrop-filter: blur(18px); border-bottom: 1px solid transparent;
+            padding: 16px 32px; background: rgba(18,18,18,.82); backdrop-filter: blur(18px); border-bottom: 1px solid transparent;
         }
 
         .topbar.stuck { border-bottom-color: var(--line); }
@@ -182,7 +209,7 @@
         .user-dropdown-admin { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; font-size: .82rem; color: var(--txt); cursor: pointer; }
         .user-dropdown-admin:hover { background: var(--panel-3); color: var(--accent); }
 
-        .hero { position: relative; overflow: hidden; padding: 26px 24px 30px; }
+        .hero { position: relative; overflow: hidden; padding: 38px 32px 42px; }
 
         .orb { position: absolute; border-radius: 50%; filter: blur(70px); pointer-events: none; z-index: 0; }
         .orb-a { width: 340px; height: 340px; top: -140px; left: -60px; background: rgba(168,85,247,.45); animation: floatOrb 17s ease-in-out infinite; }
@@ -195,7 +222,7 @@
         .hero-meta { margin-top: 14px; font-size: .9rem; color: var(--txt-2); display: flex; align-items: center; gap: 8px; }
         .dot-sep { width: 4px; height: 4px; border-radius: 50%; background: var(--txt-3); }
 
-        .sec { width: 100%; min-width: 0; padding: 6px 24px 30px; overflow: hidden; }
+        .sec { width: 100%; min-width: 0; padding: 12px 32px 38px; overflow: hidden; }
         .sec-head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 18px; }
         .sec-title { font-size: 1.45rem; font-weight: 800; letter-spacing: -.7px; }
 
@@ -512,7 +539,16 @@
                     var s = ranked[i];
                     <div class="lib-row">
                         <div class="lib-num">@(i + 1)</div>
-                        <div class="lib-thumb">@s.SongName.Substring(0, 1)</div>
+                        <div class="lib-thumb">
+                            @if (!string.IsNullOrWhiteSpace(s.CoverImageUrl))
+                            {
+                                <img src="@CoverUrl(s.CoverImageUrl)" alt="@s.SongName kapağı" />
+                            }
+                            else
+                            {
+                                @s.SongName.Substring(0, 1)
+                            }
+                        </div>
                         <div style="min-width:0">
                             <div class="lib-name">@s.SongName</div>
                             <div class="lib-sub">@s.ArtistName</div>
@@ -530,7 +566,7 @@
                     <input id="q" type="text" placeholder="Şarkı veya sanatçı ara" autocomplete="off" />
                 </div>
                 <div class="spacer"></div>
-                <div class="pkg-pill"><i class="bi bi-gem"></i>@userPkg</div>
+                <a class="pkg-pill" href="/Package/Index" title="Paketleri incele"><i class="bi bi-gem"></i>@userPkg</a>
                 <div class="user-menu" id="userMenu">
                     <div class="avatar-pill" id="avatarBtn"><i class="bi bi-person-fill"></i></div>
                     <div class="user-dropdown" id="userDropdown">
@@ -574,7 +610,7 @@
                                 <div class="card-art">
                                     @if (!string.IsNullOrWhiteSpace(featured.CoverImageUrl))
                                     {
-                                        <img src="@featured.CoverImageUrl" alt="@featured.SongName kapağı" />
+                                        <img src="@CoverUrl(featured.CoverImageUrl)" alt="@featured.SongName kapağı" />
                                     }
                                     else
                                     {
@@ -646,7 +682,7 @@
                                     <div class="t-art-fb">
                                         @if (!string.IsNullOrWhiteSpace(s.CoverImageUrl))
                                         {
-                                            <img src="@s.CoverImageUrl" alt="" />
+                                            <img src="@CoverUrl(s.CoverImageUrl)" alt="@s.SongName kapağı" />
                                         }
                                         else
                                         {

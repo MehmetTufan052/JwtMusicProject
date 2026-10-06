@@ -488,52 +488,6 @@
                     text-decoration: underline;
                 }
 
-        .demo {
-            margin-top: 26px;
-            padding: 15px;
-            border-radius: 13px;
-            border: 1px dashed var(--line);
-            background: rgba(255,255,255,.02);
-        }
-
-        .demo-h {
-            font-size: .76rem;
-            font-weight: 800;
-            letter-spacing: .5px;
-            text-transform: uppercase;
-            color: var(--txt-3);
-            margin-bottom: 11px;
-        }
-
-        .demo-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 7px;
-        }
-
-        .dchip {
-            border: 1px solid var(--line);
-            background: var(--panel-2);
-            color: var(--txt-2);
-            border-radius: 50px;
-            height: 29px;
-            padding: 0 13px;
-            font-family: inherit;
-            font-size: .79rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all .18s;
-        }
-
-            .dchip:hover {
-                color: var(--txt);
-                border-color: rgba(168,85,247,.6);
-            }
-
-            .dchip:active {
-                transform: scale(.94);
-            }
-
         @@keyframes fadeUp {
             from {
                 opacity: 0;
@@ -720,15 +674,6 @@
                     <a asp-controller="Register" asp-action="SignUp">Ücretsiz oluştur</a>
                 </div>
 
-                <div class="demo">
-                    <div class="demo-h">Test hesapları</div>
-                    <div class="demo-chips">
-                        <button class="dchip" type="button" data-u="basickullanici">Basic</button>
-                        <button class="dchip" type="button" data-u="goldkullanici">Gold</button>
-                        <button class="dchip" type="button" data-u="premiumkullanici">Premium</button>
-                        <button class="dchip" type="button" data-u="elitkullanici">Elit</button>
-                    </div>
-                </div>
             </div>
         </section>
 
@@ -746,13 +691,6 @@
             peek.setAttribute('aria-label', show ? 'Şifreyi gizle' : 'Şifreyi göster');
         });
 
-        document.querySelectorAll('.dchip').forEach(function (b) {
-            b.addEventListener('click', function () {
-                document.getElementById('Username').value = b.dataset.u;
-                pw.value = 'Sifre123!';
-                document.getElementById('Username').focus();
-            });
-        });
     </script>
 </body>
 </html>
