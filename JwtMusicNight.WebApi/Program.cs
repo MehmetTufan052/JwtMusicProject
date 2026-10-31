@@ -9,10 +9,18 @@ using JwtMusicNight.WebApi.Services.RegisterServices;
 using JwtMusicNight.WebApi.Services.SongServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException(
+        "ConnectionStrings:DefaultConnection bulunamadı. WebApi projesi için User Secrets değerini tanımlayın.");
+var jwtKey = builder.Configuration["JwtSettings:Key"]
+    ?? throw new InvalidOperationException(
+        "JwtSettings:Key bulunamadı. WebApi projesi için User Secrets değerini tanımlayın.");
 
 builder.Services.AddIdentity<AppUser, IdentityRole>().AddEntityFrameworkStores<JwtContext>().AddDefaultTokenProviders();
 // ✅ JWT Authentication eklendi
@@ -32,7 +40,7 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
         ValidAudience = builder.Configuration["JwtSettings:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]))
+            Encoding.UTF8.GetBytes(jwtKey))
     };
 });
 
@@ -45,7 +53,8 @@ builder.Services.AddScoped<ISongService, SongService>();
 builder.Services.AddScoped<IGenreService, GenreService>();
 builder.Services.AddScoped<IPlaylistService, PlaylistService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
-builder.Services.AddDbContext<JwtContext>();
+builder.Services.AddDbContext<JwtContext>(options =>
+    options.UseSqlServer(connectionString));
 
 
 
@@ -65,7 +74,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthentication();
 

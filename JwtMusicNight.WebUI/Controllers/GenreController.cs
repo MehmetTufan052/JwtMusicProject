@@ -26,8 +26,8 @@ namespace JwtMusicNight.WebUI.Controllers
             var client = _httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var genreResponse = await client.GetAsync("https://localhost:7292/api/Genre");
-            var songResponse = await client.GetAsync("https://localhost:7292/api/Song");
+            var genreResponse = await client.GetAsync("http://localhost:5253/api/Genre");
+            var songResponse = await client.GetAsync("http://localhost:5253/api/Song");
 
             if (!genreResponse.IsSuccessStatusCode || !songResponse.IsSuccessStatusCode)
             {

@@ -6,9 +6,8 @@ namespace JwtMusicNight.WebApi.Context
 {
     public class JwtContext:IdentityDbContext<AppUser>
     {
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        public JwtContext(DbContextOptions<JwtContext> options) : base(options)
         {
-            optionsBuilder.UseSqlServer("Server=DESKTOP-MO1FN9D\\SQL2019;initial catalog=JwtMusicNightDb;integrated security=true");
         }
 
         protected override void OnModelCreating(ModelBuilder builder)

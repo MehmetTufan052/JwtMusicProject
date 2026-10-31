@@ -30,7 +30,7 @@ namespace JwtMusicNight.WebUI.Controllers
                 return RedirectToAction("SignIn", "Login");
 
             var client = AuthorizedClient();
-            var response = await client.GetAsync("https://localhost:7292/api/Playlist");
+            var response = await client.GetAsync("http://localhost:5253/api/Playlist");
             if (!response.IsSuccessStatusCode)
                 return RedirectToAction("SignIn", "Login");
 
@@ -50,7 +50,7 @@ namespace JwtMusicNight.WebUI.Controllers
                 return RedirectToAction("SignIn", "Login");
 
             var client = AuthorizedClient();
-            var response = await client.GetAsync($"https://localhost:7292/api/Playlist/{id}");
+            var response = await client.GetAsync($"http://localhost:5253/api/Playlist/{id}");
             if (!response.IsSuccessStatusCode)
                 return RedirectToAction("Index");
 
@@ -72,7 +72,7 @@ namespace JwtMusicNight.WebUI.Controllers
                 return Unauthorized();
 
             var client = AuthorizedClient();
-            var response = await client.GetAsync("https://localhost:7292/api/Playlist");
+            var response = await client.GetAsync("http://localhost:5253/api/Playlist");
             var body = await response.Content.ReadAsStringAsync();
 
             return new ContentResult
@@ -94,7 +94,7 @@ namespace JwtMusicNight.WebUI.Controllers
             var jsonData = JsonConvert.SerializeObject(new CreatePlaylistDto { Name = name });
             var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
 
-            var response = await client.PostAsync("https://localhost:7292/api/Playlist", content);
+            var response = await client.PostAsync("http://localhost:5253/api/Playlist", content);
             var body = await response.Content.ReadAsStringAsync();
 
             return new ContentResult
@@ -113,7 +113,7 @@ namespace JwtMusicNight.WebUI.Controllers
                 return Unauthorized();
 
             var client = AuthorizedClient();
-            var response = await client.PostAsync($"https://localhost:7292/api/Playlist/{playlistId}/songs/{songId}", null);
+            var response = await client.PostAsync($"http://localhost:5253/api/Playlist/{playlistId}/songs/{songId}", null);
 
             return StatusCode((int)response.StatusCode);
         }
@@ -126,7 +126,7 @@ namespace JwtMusicNight.WebUI.Controllers
                 return Unauthorized();
 
             var client = AuthorizedClient();
-            var response = await client.DeleteAsync($"https://localhost:7292/api/Playlist/{playlistId}/songs/{songId}");
+            var response = await client.DeleteAsync($"http://localhost:5253/api/Playlist/{playlistId}/songs/{songId}");
 
             return StatusCode((int)response.StatusCode);
         }
@@ -139,7 +139,7 @@ namespace JwtMusicNight.WebUI.Controllers
                 return RedirectToAction("SignIn", "Login");
 
             var client = AuthorizedClient();
-            await client.DeleteAsync($"https://localhost:7292/api/Playlist/{id}");
+            await client.DeleteAsync($"http://localhost:5253/api/Playlist/{id}");
 
             return RedirectToAction("Index");
         }

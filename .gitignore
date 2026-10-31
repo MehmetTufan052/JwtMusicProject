@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Local music assets (do not publish copyrighted MP3 files)
+JwtMusicNight.WebApi/MusicFiles/

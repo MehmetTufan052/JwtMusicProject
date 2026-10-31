@@ -53,17 +53,17 @@ namespace JwtMusicNight.WebUI.Controllers
             return View();
         }
 
-        // ---------- SONGS ----------
+      
 
         public async Task<IActionResult> Songs(int? editId)
         {
             var guard = GuardOrNull();
             if (guard != null) { return guard; }
 
-            var songs = await GetJson<List<ResultSongDto>>("https://localhost:7292/api/Song") ?? new();
-            var artists = await GetJson<List<ResultArtistDto>>("https://localhost:7292/api/Artist") ?? new();
-            var genres = await GetJson<List<ResultGenreDto>>("https://localhost:7292/api/Genre") ?? new();
-            var packages = await GetJson<List<ResultPackageDto>>("https://localhost:7292/api/Admin/packages") ?? new();
+            var songs = await GetJson<List<ResultSongDto>>("http://localhost:5253/api/Song") ?? new();
+            var artists = await GetJson<List<ResultArtistDto>>("http://localhost:5253/api/Artist") ?? new();
+            var genres = await GetJson<List<ResultGenreDto>>("http://localhost:5253/api/Genre") ?? new();
+            var packages = await GetJson<List<ResultPackageDto>>("http://localhost:5253/api/Admin/packages") ?? new();
 
             var model = new AdminSongsViewModel
             {
@@ -85,7 +85,7 @@ namespace JwtMusicNight.WebUI.Controllers
 
             var client = AuthorizedClient();
             var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
-            await client.PostAsync("https://localhost:7292/api/Song", content);
+            await client.PostAsync("http://localhost:5253/api/Song", content);
 
             return RedirectToAction("Songs");
         }
@@ -98,7 +98,7 @@ namespace JwtMusicNight.WebUI.Controllers
 
             var client = AuthorizedClient();
             var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
-            await client.PutAsync($"https://localhost:7292/api/Song/{id}", content);
+            await client.PutAsync($"http://localhost:5253/api/Song/{id}", content);
 
             return RedirectToAction("Songs");
         }
@@ -110,19 +110,19 @@ namespace JwtMusicNight.WebUI.Controllers
             if (guard != null) { return guard; }
 
             var client = AuthorizedClient();
-            await client.DeleteAsync($"https://localhost:7292/api/Song/{id}");
+            await client.DeleteAsync($"http://localhost:5253/api/Song/{id}");
 
             return RedirectToAction("Songs");
         }
 
-        // ---------- ARTISTS ----------
+       
 
         public async Task<IActionResult> Artists(int? editId)
         {
             var guard = GuardOrNull();
             if (guard != null) { return guard; }
 
-            var artists = await GetJson<List<ResultArtistDto>>("https://localhost:7292/api/Artist") ?? new();
+            var artists = await GetJson<List<ResultArtistDto>>("http://localhost:5253/api/Artist") ?? new();
             ViewBag.EditingArtist = editId.HasValue ? artists.FirstOrDefault(a => a.ArtistId == editId.Value) : null;
             return View(artists);
         }
@@ -136,7 +136,7 @@ namespace JwtMusicNight.WebUI.Controllers
             dto.CreatedDate = DateTime.Now;
             var client = AuthorizedClient();
             var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
-            await client.PostAsync("https://localhost:7292/api/Artist", content);
+            await client.PostAsync("http://localhost:5253/api/Artist", content);
 
             return RedirectToAction("Artists");
         }
@@ -149,7 +149,7 @@ namespace JwtMusicNight.WebUI.Controllers
 
             var client = AuthorizedClient();
             var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
-            await client.PutAsync($"https://localhost:7292/api/Artist/{id}", content);
+            await client.PutAsync($"http://localhost:5253/api/Artist/{id}", content);
 
             return RedirectToAction("Artists");
         }
@@ -161,19 +161,19 @@ namespace JwtMusicNight.WebUI.Controllers
             if (guard != null) { return guard; }
 
             var client = AuthorizedClient();
-            await client.DeleteAsync($"https://localhost:7292/api/Artist/{id}");
+            await client.DeleteAsync($"http://localhost:5253/api/Artist/{id}");
 
             return RedirectToAction("Artists");
         }
 
-        // ---------- GENRES ----------
+      
 
         public async Task<IActionResult> Genres()
         {
             var guard = GuardOrNull();
             if (guard != null) { return guard; }
 
-            var genres = await GetJson<List<ResultGenreDto>>("https://localhost:7292/api/Genre") ?? new();
+            var genres = await GetJson<List<ResultGenreDto>>("http://localhost:5253/api/Genre") ?? new();
             return View(genres);
         }
 
@@ -185,7 +185,7 @@ namespace JwtMusicNight.WebUI.Controllers
 
             var client = AuthorizedClient();
             var content = new StringContent(JsonConvert.SerializeObject(new CreateGenreDto { GenreName = genreName }), Encoding.UTF8, "application/json");
-            await client.PostAsync("https://localhost:7292/api/Genre", content);
+            await client.PostAsync("http://localhost:5253/api/Genre", content);
 
             return RedirectToAction("Genres");
         }
@@ -197,12 +197,12 @@ namespace JwtMusicNight.WebUI.Controllers
             if (guard != null) { return guard; }
 
             var client = AuthorizedClient();
-            await client.DeleteAsync($"https://localhost:7292/api/Genre/{id}");
+            await client.DeleteAsync($"http://localhost:5253/api/Genre/{id}");
 
             return RedirectToAction("Genres");
         }
 
-        // ---------- USERS ----------
+       
 
         public async Task<IActionResult> Users()
         {
@@ -211,8 +211,8 @@ namespace JwtMusicNight.WebUI.Controllers
 
             var model = new AdminUsersViewModel
             {
-                Users = await GetJson<List<UserSummaryDto>>("https://localhost:7292/api/Admin/users") ?? new(),
-                Packages = await GetJson<List<ResultPackageDto>>("https://localhost:7292/api/Admin/packages") ?? new()
+                Users = await GetJson<List<UserSummaryDto>>("http://localhost:5253/api/Admin/users") ?? new(),
+                Packages = await GetJson<List<ResultPackageDto>>("http://localhost:5253/api/Admin/packages") ?? new()
             };
 
             return View(model);
@@ -225,7 +225,7 @@ namespace JwtMusicNight.WebUI.Controllers
             if (guard != null) { return guard; }
 
             var client = AuthorizedClient();
-            await client.PutAsync($"https://localhost:7292/api/Admin/users/{id}/package?packageId={packageId}", null);
+            await client.PutAsync($"http://localhost:5253/api/Admin/users/{id}/package?packageId={packageId}", null);
 
             return RedirectToAction("Users");
         }

@@ -10,7 +10,7 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <script src="/js/spa-router.js"></script>
+    <script src="/js/spa-router.js?v=20261028-playerbar"></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
@@ -488,6 +488,44 @@
             color: #fff;
         }
 
+        .now-page { max-width: 1180px; padding-bottom: 120px; }
+        .now-page .back { margin: 4px 0 18px; }
+        .now-page .hero {
+            min-height: 520px;
+            align-items: center;
+            gap: clamp(30px, 6vw, 72px);
+            padding: clamp(28px, 5vw, 64px);
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 28px;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(168,85,247,.24), transparent 38%),
+                radial-gradient(circle at 86% 82%, rgba(236,72,153,.16), transparent 38%),
+                linear-gradient(145deg, #19131f, #0d0a11 72%);
+            box-shadow: 0 28px 80px rgba(0,0,0,.42);
+        }
+        .now-page .hero-art {
+            width: min(38vw, 360px);
+            height: min(38vw, 360px);
+            border-radius: 22px;
+            box-shadow: 0 30px 70px rgba(0,0,0,.55);
+        }
+        .now-page .hero-title { font-size: clamp(2.4rem, 5vw, 4.8rem); line-height: .96; margin-bottom: 16px; }
+        .now-page .hero-kicker { color: #d8b4fe; }
+        .now-actions { display:flex; align-items:center; gap:12px; margin-top:22px; }
+        .now-progress { width:100%; max-width:560px; margin-top:26px; }
+        .now-track { height:5px; border-radius:99px; background:rgba(255,255,255,.16); cursor:pointer; overflow:hidden; }
+        .now-track-fill { width:0; height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--accent),var(--accent-2)); }
+        .now-times { display:flex; justify-content:space-between; margin-top:8px; color:var(--txt-3); font-size:.76rem; font-variant-numeric:tabular-nums; }
+        .now-hint { display:flex; align-items:center; gap:7px; margin-top:17px; color:var(--txt-3); font-size:.82rem; }
+        .sec-title { margin-top: 46px; }
+
+        @@media (max-width: 760px) {
+            .now-page { padding:14px 14px 105px; }
+            .now-page .hero { min-height:0; flex-direction:column; align-items:stretch; padding:24px; gap:28px; }
+            .now-page .hero-art { width:min(78vw,330px); height:min(78vw,330px); align-self:center; }
+            .now-page .hero-title { font-size:clamp(2.1rem,12vw,3.5rem); }
+        }
+
         @@keyframes spin {
             to {
                 transform: rotate(360deg);
@@ -496,8 +534,8 @@
     </style>
 </head>
 <body>
-    <div class="wrap">
-        <a class="back" href="/Song/Charts"><i class="bi bi-arrow-left"></i>&nbsp; Top Charts'a dön</a>
+    <div class="wrap now-page">
+        <a class="back" href="/Song/Charts"><i class="bi bi-arrow-left"></i>&nbsp; Şarkılara dön</a>
 
         <div class="hero">
             <div class="hero-art">
@@ -523,17 +561,24 @@
                     <span>@s.ListenCount.ToString("N0") dinlenme</span>
                     <span class="badge b-@s.PackageName.ToLower()">@s.PackageName</span>
                 </div>
-                <button class="play-big @(locked ? "locked" : "")" id="mainPlay"
-                        data-id="@s.SongId" data-name="@s.SongName" data-artist="@s.ArtistName" data-pkg="@s.PackageName">
-                    <i class="bi @(locked ? "bi-lock-fill" : "bi-play-fill")"></i>
-                    @(locked ? "Kilitli" : "Çal")
-                </button>
-                <button class="fav-btn @(Model.IsFavorited ? "on" : "")" id="favBtn" type="button" data-id="@s.SongId" aria-label="Beğen">
-                    <i class="bi @(Model.IsFavorited ? "bi-heart-fill" : "bi-heart")" id="favIcon"></i>
-                </button>
-                <button class="add-btn" id="addBtn" type="button" data-id="@s.SongId" aria-label="Çalma listesine ekle">
-                    <i class="bi bi-plus-circle"></i>
-                </button>
+                <div class="now-actions">
+                    <button class="play-big @(locked ? "locked" : "")" id="mainPlay"
+                            data-id="@s.SongId" data-name="@s.SongName" data-artist="@s.ArtistName" data-pkg="@s.PackageName">
+                        <i class="bi @(locked ? "bi-lock-fill" : "bi-play-fill")" id="detailPlayIcon"></i>
+                        <span id="detailPlayText">@(locked ? "Kilitli" : "Çal")</span>
+                    </button>
+                    <button class="fav-btn @(Model.IsFavorited ? "on" : "")" id="favBtn" type="button" data-id="@s.SongId" aria-label="Beğen">
+                        <i class="bi @(Model.IsFavorited ? "bi-heart-fill" : "bi-heart")" id="favIcon"></i>
+                    </button>
+                    <button class="add-btn" id="addBtn" type="button" data-id="@s.SongId" aria-label="Çalma listesine ekle">
+                        <i class="bi bi-plus-circle"></i>
+                    </button>
+                </div>
+                <div class="now-progress">
+                    <div class="now-track" id="detailTrack"><div class="now-track-fill" id="detailTrackFill"></div></div>
+                    <div class="now-times"><span id="detailCurrent">0:00</span><span id="detailDuration">@s.Duration.ToString("m\\:ss")</span></div>
+                </div>
+                <div class="now-hint"><i class="bi bi-soundwave"></i> Şimdi çalıyor görünümü</div>
             </div>
         </div>
 
@@ -612,13 +657,43 @@
         var npSub = document.getElementById('npSub');
         var plPlay = document.getElementById('plPlay');
         var plIcon = document.getElementById('plIcon');
+        var detailPlayIcon = document.getElementById('detailPlayIcon');
+        var detailPlayText = document.getElementById('detailPlayText');
+        var detailTrack = document.getElementById('detailTrack');
+        var detailTrackFill = document.getElementById('detailTrackFill');
+        var detailCurrent = document.getElementById('detailCurrent');
+        var detailDuration = document.getElementById('detailDuration');
         var playing = false;
+
+        function formatTime(seconds) {
+            if (!isFinite(seconds) || seconds < 0) { seconds = 0; }
+            var minutes = Math.floor(seconds / 60);
+            var remaining = Math.floor(seconds % 60);
+            return minutes + ':' + (remaining < 10 ? '0' : '') + remaining;
+        }
 
         function setPlaying(on) {
             playing = on;
             npArt.classList.toggle('spin', on);
             plIcon.className = on ? 'bi bi-pause-fill' : 'bi bi-play-fill';
+            if (detailPlayIcon && !document.getElementById('mainPlay').classList.contains('locked')) {
+                detailPlayIcon.className = on ? 'bi bi-pause-fill' : 'bi bi-play-fill';
+                detailPlayText.textContent = on ? 'Duraklat' : 'Çal';
+            }
         }
+
+        audio.addEventListener('play', function () { setPlaying(true); });
+        audio.addEventListener('pause', function () { setPlaying(false); });
+        audio.addEventListener('timeupdate', function () {
+            if (audio.duration) { detailTrackFill.style.width = ((audio.currentTime / audio.duration) * 100) + '%'; }
+            detailCurrent.textContent = formatTime(audio.currentTime);
+        });
+        audio.addEventListener('loadedmetadata', function () { detailDuration.textContent = formatTime(audio.duration); });
+        detailTrack.addEventListener('click', function (event) {
+            if (!audio.duration) { return; }
+            var rect = detailTrack.getBoundingClientRect();
+            audio.currentTime = ((event.clientX - rect.left) / rect.width) * audio.duration;
+        });
 
         plPlay.addEventListener('click', function () {
             if (!audio.src) { return; }
@@ -645,7 +720,7 @@
             var data = await res.json();
             npName.textContent = data.songName || name;
             npSub.textContent = data.artistName || artist;
-            if (window.spaSetNowPlaying) { window.spaSetNowPlaying(data.songName || name, data.artistName || artist); }
+            if (window.spaSetNowPlaying) { window.spaSetNowPlaying(data.songName || name, data.artistName || artist, data.coverImageUrl, data.songId || id); }
 
             if (data.audioUrl) {
                 audio.src = data.audioUrl;

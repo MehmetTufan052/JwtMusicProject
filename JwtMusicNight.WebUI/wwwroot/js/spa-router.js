@@ -1,6 +1,24 @@
 (function () {
     var persistentAudio = null;
-    var nowPlaying = { name: '', artist: '' };
+    var nowPlaying = { name: '', artist: '', coverUrl: '', songId: null };
+
+    function syncArtwork() {
+        var art = document.getElementById('npArt') || document.querySelector('.now-art');
+        if (!art || !nowPlaying.coverUrl) { return; }
+
+        art.innerHTML = '';
+        var image = document.createElement('img');
+        image.src = nowPlaying.coverUrl;
+        image.alt = nowPlaying.name ? nowPlaying.name + ' kapağı' : 'Şarkı kapağı';
+        image.style.width = '100%';
+        image.style.height = '100%';
+        image.style.objectFit = 'cover';
+        image.style.display = 'block';
+        image.onerror = function () {
+            art.innerHTML = '<i class="bi bi-music-note-beamed"></i>';
+        };
+        art.appendChild(image);
+    }
 
     function fmtTime(s) {
         if (!isFinite(s) || s < 0) { s = 0; }
@@ -16,6 +34,36 @@
         var subEls = [document.getElementById('npSub'), document.getElementById('nowArtist')].filter(Boolean);
         if (nowPlaying.name) { nameEls.forEach(function (el) { el.textContent = nowPlaying.name; }); }
         if (nowPlaying.artist) { subEls.forEach(function (el) { el.textContent = nowPlaying.artist; }); }
+        syncArtwork();
+
+        if (nowPlaying.songId) {
+            var openNowPlaying = function () {
+                var url = '/Song/SongDetail/' + nowPlaying.songId;
+                if (window.spaNavigate) { window.spaNavigate(url); }
+                else { window.location.href = url; }
+            };
+            var artEl = document.getElementById('npArt') || document.querySelector('.now-art');
+            if (artEl) {
+                artEl.style.cursor = 'pointer';
+                artEl.title = 'Şimdi çalıyor ekranını aç';
+                artEl.onclick = openNowPlaying;
+            }
+            nameEls.forEach(function (el) {
+                el.style.cursor = 'pointer';
+                el.title = 'Şimdi çalıyor ekranını aç';
+                el.onclick = openNowPlaying;
+            });
+
+            var playerBar = document.querySelector('.player');
+            if (playerBar) {
+                playerBar.style.cursor = 'pointer';
+                playerBar.title = 'Şimdi çalıyor ekranını aç';
+                playerBar.onclick = function (event) {
+                    if (event.target.closest('button, a, input, .track, .vol-line, #detailTrack')) { return; }
+                    openNowPlaying();
+                };
+            }
+        }
 
         var icons = [document.getElementById('plIcon'), document.getElementById('mainIcon')].filter(Boolean);
         if (audio.src) {
@@ -35,9 +83,11 @@
         if (end && audio.duration) { end.textContent = fmtTime(audio.duration); }
     }
 
-    window.spaSetNowPlaying = function (name, artist) {
+    window.spaSetNowPlaying = function (name, artist, coverUrl, songId) {
         if (name) { nowPlaying.name = name; }
         if (artist) { nowPlaying.artist = artist; }
+        if (coverUrl) { nowPlaying.coverUrl = coverUrl; }
+        if (songId) { nowPlaying.songId = songId; }
         syncNowPlayingUI();
     };
 

@@ -1,4 +1,4 @@
-﻿using JwtMusicNight.WebUI.Dtos;
+using JwtMusicNight.WebUI.Dtos;
 using JwtMusicNight.WebUI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -28,7 +28,7 @@ namespace JwtMusicNight.WebUI.Controllers
             var client = _httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var responseMessage = await client.GetAsync("https://localhost:7292/api/Artist");
+            var responseMessage = await client.GetAsync("http://localhost:5253/api/Artist");
 
             if (!responseMessage.IsSuccessStatusCode)
             {
@@ -56,7 +56,7 @@ namespace JwtMusicNight.WebUI.Controllers
             var client = _httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var artistResponse = await client.GetAsync("https://localhost:7292/api/Artist/" + id);
+            var artistResponse = await client.GetAsync("http://localhost:5253/api/Artist/" + id);
 
             if (!artistResponse.IsSuccessStatusCode)
             {
@@ -64,8 +64,8 @@ namespace JwtMusicNight.WebUI.Controllers
             }
 
             var artistJson = await artistResponse.Content.ReadAsStringAsync();
-            var songsJson = await client.GetStringAsync("https://localhost:7292/api/Song/byartist/" + id);
-            var followJson = await client.GetStringAsync($"https://localhost:7292/api/Artist/{id}/follow-status");
+            var songsJson = await client.GetStringAsync("http://localhost:5253/api/Song/byartist/" + id);
+            var followJson = await client.GetStringAsync($"http://localhost:5253/api/Artist/{id}/follow-status");
 
             var model = new ArtistDetailViewModel
             {
@@ -91,7 +91,7 @@ namespace JwtMusicNight.WebUI.Controllers
             var client = _httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await client.PostAsync($"https://localhost:7292/api/Artist/follow/{id}", null);
+            var response = await client.PostAsync($"http://localhost:5253/api/Artist/follow/{id}", null);
             var body = await response.Content.ReadAsStringAsync();
 
             return new ContentResult
@@ -113,7 +113,7 @@ namespace JwtMusicNight.WebUI.Controllers
             var client = _httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await client.GetAsync("https://localhost:7292/api/Artist/followed");
+            var response = await client.GetAsync("http://localhost:5253/api/Artist/followed");
             if (!response.IsSuccessStatusCode)
             {
                 return RedirectToAction("SignIn", "Login");

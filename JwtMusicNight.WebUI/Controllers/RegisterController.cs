@@ -1,4 +1,4 @@
-﻿using JwtMusicNight.WebUI.Dtos;
+using JwtMusicNight.WebUI.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Text;
@@ -27,7 +27,7 @@ namespace JwtMusicNight.WebUI.Controllers
             var client= _httpClientFactory.CreateClient();
             var jsonData=JsonConvert.SerializeObject(registerDto);
             StringContent stringContent=new StringContent(jsonData, Encoding.UTF8, "application/json");
-            var responseMessage=await client.PostAsync("https://localhost:7292/api/Register", stringContent);
+            var responseMessage=await client.PostAsync("http://localhost:5253/api/Register", stringContent);
 
             if(responseMessage.IsSuccessStatusCode)
             {

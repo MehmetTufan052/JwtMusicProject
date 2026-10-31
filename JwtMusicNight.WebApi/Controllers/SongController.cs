@@ -48,6 +48,7 @@ namespace JwtMusicNight.WebApi.Controllers
             {
                 song.SongId,
                 song.SongName,
+                song.CoverImageUrl,
                 AudioUrl = $"/api/Song/stream/{song.SongId}",
                 ArtistName = song.Artist.ArtistName
             });

@@ -26,7 +26,18 @@ namespace JwtMusicNight.WebApi.Services.LoginServices
         }
         public async Task<LoginResponseDto> LoginAsync(LoginDto loginDto)
         {
-            var user = await _userManager.FindByNameAsync(loginDto.Username);
+            var loginValue = loginDto.Username?.Trim();
+            if (string.IsNullOrWhiteSpace(loginValue) || string.IsNullOrWhiteSpace(loginDto.Password))
+            {
+                return null;
+            }
+
+            var user = await _userManager.FindByNameAsync(loginValue);
+
+            if (user == null && loginValue.Contains('@'))
+            {
+                user = await _userManager.FindByEmailAsync(loginValue);
+            }
 
             if (user == null)
             {
@@ -42,6 +53,19 @@ namespace JwtMusicNight.WebApi.Services.LoginServices
 
             var package = await _context.Packages
                 .FirstOrDefaultAsync(p => p.PackageId == user.PackageId);
+
+            // Eski veya eksik paket ilişkisi olan hesapların girişte 500 hatası vermesini engelle.
+            if (package == null)
+            {
+                package = await _context.Packages.OrderBy(p => p.Level).FirstOrDefaultAsync();
+                if (package == null)
+                {
+                    return null;
+                }
+
+                user.PackageId = package.PackageId;
+                await _userManager.UpdateAsync(user);
+            }
 
             var roles = await _userManager.GetRolesAsync(user);
 
@@ -59,29 +83,43 @@ namespace JwtMusicNight.WebApi.Services.LoginServices
             var jwtSettings = _configuration.GetSection("JwtSettings");
             var roles = await _userManager.GetRolesAsync(appUser);
 
+            var jwtKey = jwtSettings["Key"];
+            if (string.IsNullOrWhiteSpace(jwtKey))
+            {
+                throw new InvalidOperationException("JWT imzalama anahtarı bulunamadı.");
+            }
+
+            var issuer = jwtSettings["Issuer"] ?? "MusicAppApi";
+            var audience = jwtSettings["Audience"] ?? "MusicAppUsers";
+            var expireMinutes = jwtSettings.GetValue<int?>("ExpireMinutes") ?? 20;
+
             var claims = new List<Claim>
-    {
-        new Claim(ClaimTypes.NameIdentifier, appUser.Id),
-        new Claim(ClaimTypes.Email, appUser.Email),
-        new Claim(ClaimTypes.Name, appUser.Name),
-        new Claim(ClaimTypes.Surname, appUser.Surname),
-        new Claim("PackageLevel", package.Level.ToString()),
-        new Claim("PackageName", package.PackageName),
-    };
+            {
+                new Claim(ClaimTypes.NameIdentifier, appUser.Id),
+                new Claim(ClaimTypes.Name, appUser.Name ?? appUser.UserName ?? "Kullanıcı"),
+                new Claim(ClaimTypes.Surname, appUser.Surname ?? string.Empty),
+                new Claim("PackageLevel", package.Level.ToString()),
+                new Claim("PackageName", package.PackageName ?? "Free"),
+            };
+
+            if (!string.IsNullOrWhiteSpace(appUser.Email))
+            {
+                claims.Add(new Claim(ClaimTypes.Email, appUser.Email));
+            }
 
             foreach (var role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]!));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: jwtSettings["Issuer"],
-                audience: jwtSettings["Audience"],
+                issuer: issuer,
+                audience: audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(int.Parse(jwtSettings["ExpireMinutes"]!)),
+                expires: DateTime.UtcNow.AddMinutes(expireMinutes),
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);

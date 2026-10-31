@@ -7,7 +7,7 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <script src="/js/spa-router.js"></script>
+    <script src="/js/spa-router.js?v=20261028-playerbar"></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
@@ -141,13 +141,33 @@
 
         .hero-meta { margin-top: 14px; font-size: .9rem; color: var(--txt-2); display: flex; align-items: center; gap: 8px; }
 
+        .hero-layout { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:36px; }
+        .hero-copy { max-width:720px; }
+        .hero-desc { max-width:610px; margin-top:16px; color:var(--txt-2); line-height:1.65; font-size:.96rem; }
+        .hero-stats { display:flex; gap:10px; flex-wrap:wrap; margin-top:24px; }
+        .stat-pill { display:flex; align-items:center; gap:9px; min-height:42px; padding:0 15px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.055); font-size:.82rem; color:var(--txt-2); }
+        .stat-pill i { color:#d8b4fe; font-size:1rem; }
+        .stat-pill strong { color:var(--txt); }
+        .hero-stack { position:relative; width:220px; height:150px; margin-right:14px; }
+        .stack-art { position:absolute; width:118px; height:118px; border-radius:50%; overflow:hidden; border:4px solid var(--panel); background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 18px 45px rgba(0,0,0,.45); }
+        .stack-art img { width:100%; height:100%; object-fit:cover; }
+        .stack-art:nth-child(1) { left:0; top:25px; z-index:1; }
+        .stack-art:nth-child(2) { left:58px; top:0; z-index:3; }
+        .stack-art:nth-child(3) { left:112px; top:30px; z-index:2; }
+
         .sec { width: 100%; min-width: 0; padding: 12px 32px 38px; overflow: hidden; }
+
+        .section-head { display:flex; align-items:end; justify-content:space-between; gap:20px; margin-bottom:18px; }
+        .section-title { font-size:1.35rem; font-weight:800; letter-spacing:-.4px; }
+        .section-copy { margin-top:5px; color:var(--txt-3); font-size:.84rem; }
+        .artist-search { width:min(300px,100%); height:42px; display:flex; align-items:center; gap:10px; padding:0 14px; border:1px solid var(--line); border-radius:12px; background:var(--panel-2); color:var(--txt-2); }
+        .artist-search input { width:100%; border:0; outline:0; background:transparent; color:var(--txt); font:inherit; font-size:.86rem; }
 
         /* ---------- ARTIST GRID ---------- */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 18px; }
 
-        .card { display: block; background: transparent; border-radius: 8px; padding: 13px; transition: background .22s; position: relative; }
-        .card:hover { background: var(--panel-2); }
+        .card { display: block; min-width:0; background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.018)); border:1px solid var(--line); border-radius:16px; padding:14px; transition:transform .22s, background .22s, border-color .22s; position: relative; animation:fadeUp .5s both; }
+        .card:hover { background:var(--panel-2); border-color:rgba(168,85,247,.35); transform:translateY(-5px); }
 
         .card-art { position: relative; width: 100%; aspect-ratio: 1; border-radius: 50%; overflow: hidden; margin-bottom: 14px; background: var(--panel-3); }
         .card-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -162,6 +182,12 @@
         .card-name span { overflow: hidden; text-overflow: ellipsis; }
         .card-name .bi-patch-check-fill { color: #3d9df3; font-size: .82rem; flex-shrink: 0; }
         .card-sub { margin-top: 5px; font-size: .82rem; color: var(--txt-3); }
+        .card-bio { margin-top:10px; min-height:38px; color:var(--txt-2); font-size:.78rem; line-height:1.45; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+        .card-foot { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:14px; padding-top:12px; border-top:1px solid var(--line); }
+        .following { display:inline-flex; align-items:center; gap:6px; color:#f0abfc; font-size:.74rem; font-weight:700; }
+        .profile-link { display:inline-flex; align-items:center; gap:5px; color:var(--txt); font-size:.75rem; font-weight:700; }
+        .empty { border:1px dashed var(--line); border-radius:18px; background:rgba(255,255,255,.025); }
+        .empty-cta { display:inline-flex; align-items:center; gap:8px; margin-top:16px; padding:11px 17px; border-radius:999px; background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; font-weight:750; font-size:.84rem; }
 
         .empty { text-align: center; padding: 50px 20px; color: var(--txt-3); }
         .empty i { font-size: 2.3rem; display: block; margin-bottom: 12px; }
@@ -211,6 +237,14 @@
             .shell { grid-template-columns: minmax(0, 1fr); }
             .rail { display: none; }
         }
+        @@media (max-width: 760px) {
+            .hero, .sec { padding-left:18px; padding-right:18px; }
+            .hero-layout { grid-template-columns:1fr; }
+            .hero-stack { display:none; }
+            .section-head { align-items:stretch; flex-direction:column; }
+            .artist-search { width:100%; }
+            .grid { grid-template-columns:repeat(auto-fill,minmax(155px,1fr)); gap:12px; }
+        }
     </style>
 </head>
 <body>
@@ -225,7 +259,7 @@
                 <a class="nav-item" href="/Home/Index"><i class="bi bi-house-door"></i>Ana sayfa</a>
                 <a class="nav-item" href="/Artist/ArtistListV2"><i class="bi bi-person-badge"></i>Sanatçılar</a>
                 <a class="nav-item" href="/Genre/GenreList"><i class="bi bi-collection"></i>Türler</a>
-                <a class="nav-item" href="/Song/Charts"><i class="bi bi-music-note-list"></i>Top Charts</a>
+                <a class="nav-item" href="/Song/Charts"><i class="bi bi-music-note-list"></i>Şarkılar</a>
                 <a class="nav-item" href="/Song/History"><i class="bi bi-clock-history"></i>Geçmiş</a>
                 <a class="nav-item on" href="/Artist/Followed"><i class="bi bi-person-heart"></i>Takip Ettiklerim</a>
                 <a class="nav-item" href="/Song/Favorites"><i class="bi bi-heart"></i>Beğendiklerim</a>
@@ -253,23 +287,51 @@
             <section class="hero">
                 <div class="orb orb-a"></div>
                 <div class="orb orb-b"></div>
-                <div class="hero-kicker">Takip listesi</div>
-                <h1 class="hero-title">Takip Ettiklerim</h1>
-                <div class="hero-meta"><span>@Model.Count sanatçı</span></div>
+                <div class="hero-layout">
+                    <div class="hero-copy">
+                        <div class="hero-kicker">Sana özel sanatçı alanı</div>
+                        <h1 class="hero-title">Takip Ettiklerim</h1>
+                        <p class="hero-desc">Sevdiğin sanatçıları tek bir yerde tut, profillerine hızlıca ulaş ve yeni şarkılarını keşfetmeye kaldığın yerden devam et.</p>
+                        <div class="hero-stats">
+                            <div class="stat-pill"><i class="bi bi-person-heart"></i><span><strong>@Model.Count</strong> sanatçı takip ediliyor</span></div>
+                            <div class="stat-pill"><i class="bi bi-patch-check-fill"></i><span><strong>@Model.Count(a => a.IsVerified)</strong> onaylı profil</span></div>
+                            <div class="stat-pill"><i class="bi bi-globe2"></i><span><strong>@Model.Select(a => a.Country).Where(c => !string.IsNullOrWhiteSpace(c)).Distinct().Count()</strong> farklı ülke</span></div>
+                        </div>
+                    </div>
+                    @if (Model.Count > 0)
+                    {
+                        <div class="hero-stack" aria-hidden="true">
+                            @foreach (var artist in Model.Take(3))
+                            {
+                                <div class="stack-art">
+                                    @if (!string.IsNullOrWhiteSpace(artist.ArtistImageUrl)) { <img src="@artist.ArtistImageUrl" alt="" /> }
+                                    else { <div class="circle-fallback">@artist.ArtistName.Substring(0, 1)</div> }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
             </section>
 
             <section class="sec">
+                <div class="section-head">
+                    <div><h2 class="section-title">Sanatçı koleksiyonun</h2><p class="section-copy">Takip ettiğin profilleri görüntüle ve keşfetmeye devam et.</p></div>
+                    @if (Model.Count > 0)
+                    {
+                        <label class="artist-search"><i class="bi bi-search"></i><input id="artistSearch" type="search" placeholder="Sanatçı ara..." autocomplete="off" /></label>
+                    }
+                </div>
                 @if (Model.Count == 0)
                 {
-                    <div class="empty"><i class="bi bi-heart"></i>Henüz hiçbir sanatçıyı takip etmiyorsun.</div>
+                    <div class="empty"><i class="bi bi-heart"></i><strong>Henüz hiçbir sanatçıyı takip etmiyorsun.</strong><div>Sanatçıları keşfet ve sevdiklerini koleksiyonuna ekle.</div><a class="empty-cta" href="/Artist/ArtistListV2"><i class="bi bi-compass"></i>Sanatçıları keşfet</a></div>
                 }
                 else
                 {
-                    <div class="grid">
+                    <div class="grid" id="artistGrid">
                         @for (int i = 0; i < Model.Count; i++)
                         {
                             var a = Model[i];
-                            <a class="card" href="/Artist/ArtistDetail/@a.ArtistId" style="animation-delay:@(i * 55)ms">
+                            <a class="card" href="/Artist/ArtistDetail/@a.ArtistId" data-search="@($"{a.ArtistName} {a.Country}".ToLowerInvariant())" style="animation-delay:@(i * 55)ms">
                                 <div class="card-art">
                                     @if (!string.IsNullOrWhiteSpace(a.ArtistImageUrl))
                                     {
@@ -288,9 +350,12 @@
                                     }
                                 </div>
                                 <div class="card-sub">@a.Country</div>
+                                <div class="card-bio">@(string.IsNullOrWhiteSpace(a.Bio) ? "Sanatçının profilini ve yayınlanan şarkılarını keşfet." : a.Bio)</div>
+                                <div class="card-foot"><span class="following"><i class="bi bi-check2-circle"></i>Takip ediliyor</span><span class="profile-link">Profile git <i class="bi bi-arrow-right"></i></span></div>
                             </a>
                         }
                     </div>
+                    <div class="empty" id="searchEmpty" style="display:none"><i class="bi bi-search"></i>Aramana uygun sanatçı bulunamadı.</div>
                 }
             </section>
 
@@ -331,6 +396,20 @@
                 userDropdown.classList.toggle('show');
             });
             document.addEventListener('click', function () { userDropdown.classList.remove('show'); });
+        }
+
+        var artistSearch = document.getElementById('artistSearch');
+        if (artistSearch) {
+            artistSearch.addEventListener('input', function () {
+                var query = this.value.trim().toLocaleLowerCase('tr-TR');
+                var visible = 0;
+                document.querySelectorAll('#artistGrid .card').forEach(function (card) {
+                    var show = !query || card.dataset.search.toLocaleLowerCase('tr-TR').includes(query);
+                    card.style.display = show ? '' : 'none';
+                    if (show) { visible++; }
+                });
+                document.getElementById('searchEmpty').style.display = visible ? 'none' : 'block';
+            });
         }
 
         var audio = document.getElementById('audio');

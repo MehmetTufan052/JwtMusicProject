@@ -4,11 +4,13 @@
     ViewData["Title"] = "Beğendiğim Şarkılar – Echoa";
     var userLevel = (int)ViewBag.PackageLevel;
     var userPkg = (string)ViewBag.PackageName;
+    var artistCount = Model.Select(x => x.ArtistId).Distinct().Count();
+    var genreCount = Model.Where(x => !string.IsNullOrWhiteSpace(x.GenreName)).Select(x => x.GenreName).Distinct().Count();
 }
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <script src="/js/spa-router.js"></script>
+    <script src="/js/spa-router.js?v=20261028-playerbar"></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
@@ -130,7 +132,7 @@
         .user-dropdown-admin { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; font-size: .82rem; color: var(--txt); cursor: pointer; }
         .user-dropdown-admin:hover { background: var(--panel-3); color: var(--accent); }
 
-        .hero { position: relative; overflow: hidden; padding: 38px 32px 42px; }
+        .hero { position: relative; overflow: hidden; padding: 38px 32px 34px; }
 
         .orb { position: absolute; border-radius: 50%; filter: blur(70px); pointer-events: none; z-index: 0; }
         .orb-a { width: 340px; height: 340px; top: -140px; left: -60px; background: rgba(168,85,247,.45); animation: floatOrb 17s ease-in-out infinite; }
@@ -141,8 +143,21 @@
         .hero-title { font-size: clamp(2.4rem, 6vw, 4.2rem); font-weight: 800; letter-spacing: -2.5px; line-height: 1.02; }
 
         .hero-meta { margin-top: 14px; font-size: .9rem; color: var(--txt-2); display: flex; align-items: center; gap: 8px; }
+        .hero-copy { max-width: 650px; color: var(--txt-2); line-height: 1.65; margin-top: 12px; }
+        .stat-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+        .stat-pill { display: flex; align-items: center; gap: 9px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; background: rgba(18,18,18,.7); backdrop-filter: blur(10px); }
+        .stat-pill i { color: #d8b4fe; }
+        .stat-pill strong { font-size: .9rem; }
+        .stat-pill span { color: var(--txt-3); font-size: .76rem; }
 
         .sec { width: 100%; min-width: 0; padding: 12px 32px 38px; overflow: hidden; }
+        .sec-head { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
+        .sec-title { font-size: 1.25rem; font-weight: 800; }
+        .sec-note { color: var(--txt-3); font-size: .82rem; margin-top: 4px; }
+        .search-box { width: min(310px, 100%); position: relative; }
+        .search-box i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--txt-3); }
+        .search-box input { width: 100%; height: 42px; padding: 0 15px 0 40px; border: 1px solid var(--line); border-radius: 50px; background: var(--panel-2); color: var(--txt); outline: none; font-family: inherit; }
+        .search-box input:focus { border-color: rgba(216,180,254,.55); }
 
         /* ---------- SONG LIST ---------- */
         .thead {
@@ -198,8 +213,10 @@
 
         .t-dur { font-size: .86rem; color: var(--txt-3); text-align: right; }
 
-        .empty { text-align: center; padding: 50px 20px; color: var(--txt-3); }
+        .empty { text-align: center; padding: 58px 20px; color: var(--txt-3); border: 1px dashed var(--line); border-radius: 18px; background: var(--panel-2); }
         .empty i { font-size: 2.3rem; display: block; margin-bottom: 12px; }
+        .empty strong { display: block; color: var(--txt); font-size: 1.05rem; margin-bottom: 7px; }
+        .empty a { display: inline-flex; margin-top: 18px; padding: 10px 16px; border-radius: 50px; color: #fff; font-weight: 750; background: linear-gradient(120deg,var(--accent),var(--accent-2)); }
 
         /* ---------- PLAYER ---------- */
         .player {
@@ -301,6 +318,7 @@
             .np, .pl-right { width: auto; }
             .pl-right { display: none; }
         }
+        @@media (max-width: 680px) { .sec-head { align-items: stretch; flex-direction: column; } .search-box { width: 100%; } }
 
         @@media (max-width: 680px) {
             .topbar, .hero, .sec { padding-left: 16px; padding-right: 16px; }
@@ -330,7 +348,7 @@
                 <a class="nav-item" href="/Home/Index"><i class="bi bi-house-door"></i>Ana sayfa</a>
                 <a class="nav-item" href="/Artist/ArtistListV2"><i class="bi bi-person-badge"></i>Sanatçılar</a>
                 <a class="nav-item" href="/Genre/GenreList"><i class="bi bi-collection"></i>Türler</a>
-                <a class="nav-item" href="/Song/Charts"><i class="bi bi-music-note-list"></i>Top Charts</a>
+                <a class="nav-item" href="/Song/Charts"><i class="bi bi-music-note-list"></i>Şarkılar</a>
                 <a class="nav-item" href="/Song/History"><i class="bi bi-clock-history"></i>Geçmiş</a>
                 <a class="nav-item" href="/Artist/Followed"><i class="bi bi-person-heart"></i>Takip Ettiklerim</a>
                 <a class="nav-item on" href="/Song/Favorites"><i class="bi bi-heart-fill"></i>Beğendiklerim</a>
@@ -360,13 +378,25 @@
                 <div class="orb orb-b"></div>
                 <div class="hero-kicker">Beğenilen şarkılar</div>
                 <h1 class="hero-title">Beğendiğim Şarkılar</h1>
-                <div class="hero-meta"><span>@Model.Count şarkı</span></div>
+                <p class="hero-copy">Tekrar dinlemek istediğin tüm parçalar burada. Sevdiğin sanatçılara, türlere ve şarkılara tek bir koleksiyondan ulaş.</p>
+                <div class="stat-row">
+                    <div class="stat-pill"><i class="bi bi-heart-fill"></i><div><strong>@Model.Count</strong> <span>şarkı</span></div></div>
+                    <div class="stat-pill"><i class="bi bi-mic-fill"></i><div><strong>@artistCount</strong> <span>sanatçı</span></div></div>
+                    <div class="stat-pill"><i class="bi bi-vinyl-fill"></i><div><strong>@genreCount</strong> <span>müzik türü</span></div></div>
+                </div>
             </section>
 
             <section class="sec">
+                <div class="sec-head">
+                    <div><div class="sec-title">Favori koleksiyonun</div><div class="sec-note">Bir parçayı aç veya kalp simgesinden koleksiyonunu düzenle.</div></div>
+                    @if (Model.Count > 0)
+                    {
+                        <label class="search-box"><i class="bi bi-search"></i><input id="favoriteSearch" type="search" placeholder="Şarkı, sanatçı veya tür ara" /></label>
+                    }
+                </div>
                 @if (Model.Count == 0)
                 {
-                    <div class="empty"><i class="bi bi-heart"></i>Henüz hiçbir şarkı beğenmedin.</div>
+                    <div class="empty"><i class="bi bi-heart"></i><strong>Favori koleksiyonun henüz boş</strong>Beğendiğin parçalar burada bir araya gelecek.<br /><a href="/Song/Charts">Şarkıları keşfet</a></div>
                 }
                 else
                 {
@@ -383,6 +413,7 @@
                             var locked = userLevel < s.PackageLevel;
                             <div class="trow @(locked ? "locked" : "")"
                                  style="animation-delay:@(i * 30)ms"
+                                 data-search="@($"{s.SongName} {s.ArtistName} {s.GenreName}".ToLowerInvariant())"
                                  data-href="/Song/SongDetail/@s.SongId">
                                 <div class="t-num">
                                     <span class="n">@(i + 1)</span>
@@ -490,6 +521,13 @@
         }
 
         var rows = Array.prototype.slice.call(document.querySelectorAll('#grid .trow'));
+        var favoriteSearch = document.getElementById('favoriteSearch');
+        if (favoriteSearch) {
+            favoriteSearch.addEventListener('input', function () {
+                var term = this.value.trim().toLocaleLowerCase('tr-TR');
+                rows.forEach(function (row) { row.style.display = !term || (row.dataset.search || '').toLocaleLowerCase('tr-TR').includes(term) ? '' : 'none'; });
+            });
+        }
 
         var modal = document.getElementById('lockModal');
         var lockMsg = document.getElementById('lockMsg');
@@ -621,7 +659,7 @@
             var data = await res.json();
             npName.textContent = data.songName || name;
             npSub.textContent = data.artistName || artist;
-            if (window.spaSetNowPlaying) { window.spaSetNowPlaying(data.songName || name, data.artistName || artist); }
+            if (window.spaSetNowPlaying) { window.spaSetNowPlaying(data.songName || name, data.artistName || artist, data.coverImageUrl, data.songId || id); }
             currentIndex = playlist.findIndex(function (p) { return p.id === String(id); });
 
             if (data.audioUrl) {

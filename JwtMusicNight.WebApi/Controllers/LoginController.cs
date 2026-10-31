@@ -19,14 +19,24 @@ namespace JwtMusicNight.WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> UserLogin(LoginDto loginDto)
         {
-            var result = await _loginService.LoginAsync(loginDto);
-
-            if (result == null)
+            try
             {
-                return Unauthorized("Kullanici adi veya sifre hatali.");
-            }
+                var result = await _loginService.LoginAsync(loginDto);
 
-            return Ok(result);
+                if (result == null)
+                {
+                    return Unauthorized("Kullanıcı adı/e-posta veya şifre hatalı.");
+                }
+
+                return Ok(result);
+            }
+            catch (Exception exception)
+            {
+                return Problem(
+                    title: "Giriş işlemi tamamlanamadı.",
+                    detail: exception.Message,
+                    statusCode: StatusCodes.Status500InternalServerError);
+            }
         }
     }
 }

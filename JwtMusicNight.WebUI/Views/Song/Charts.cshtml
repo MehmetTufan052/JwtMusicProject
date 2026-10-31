@@ -1,7 +1,7 @@
 @model List<JwtMusicNight.WebUI.Dtos.ResultSongDto>
 @{
     Layout = null;
-    ViewData["Title"] = "Top Charts – Echoa";
+    ViewData["Title"] = "Şarkılar – Echoa";
     var ranked = Model.OrderByDescending(s => s.ListenCount).ToList();
     var userLevel = (int)ViewBag.PackageLevel;
     var userPkg = (string)ViewBag.PackageName;
@@ -35,7 +35,7 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <script src="/js/spa-router.js"></script>
+    <script src="/js/spa-router.js?v=20261028-playerbar"></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
@@ -582,8 +582,8 @@
             <section class="hero">
                 <div class="orb orb-a"></div>
                 <div class="orb orb-b"></div>
-                <div class="hero-kicker">Haftalık Liste</div>
-                <h1 class="hero-title">Top Charts</h1>
+                <div class="hero-kicker">Echoa müzik kataloğu</div>
+                <h1 class="hero-title">Şarkılar</h1>
                 <div class="hero-meta">
                     <span>@Model.Count şarkı</span>
                     <span class="dot-sep"></span>
@@ -948,7 +948,7 @@
             var data = await res.json();
             npName.textContent = data.songName || name;
             npSub.textContent = data.artistName || artist;
-            if (window.spaSetNowPlaying) { window.spaSetNowPlaying(data.songName || name, data.artistName || artist); }
+            if (window.spaSetNowPlaying) { window.spaSetNowPlaying(data.songName || name, data.artistName || artist, data.coverImageUrl, data.songId || id); }
             currentIndex = playlist.findIndex(function (p) { return p.id === String(id); });
 
             if (data.audioUrl) {

@@ -1,4 +1,4 @@
-﻿using JwtMusicNight.WebUI.Models;
+using JwtMusicNight.WebUI.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -22,7 +22,7 @@ namespace JwtMusicNight.WebUI.Controllers
             try
             {
                 var client = _httpClientFactory.CreateClient();
-                var response = await client.GetAsync("https://localhost:7292/api/Artist");
+                var response = await client.GetAsync("http://localhost:5253/api/Artist");
 
                 if (response.IsSuccessStatusCode)
                 {

@@ -1,4 +1,4 @@
-﻿using JwtMusicNight.WebUI.Dtos;
+using JwtMusicNight.WebUI.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Text;
@@ -23,23 +23,56 @@ namespace JwtMusicNight.WebUI.Controllers
         [HttpPost]
         public async Task<IActionResult> SignIn(LoginDto loginDto)
         {
-            var client= _httpClientFactory.CreateClient();
-            var jsonData=JsonConvert.SerializeObject(loginDto);
-            StringContent stringContent=new StringContent(jsonData, Encoding.UTF8, "application/json");
-            var responseMessage=await client.PostAsync("https://localhost:7292/api/Login", stringContent);
-            if (responseMessage.IsSuccessStatusCode)
+            if (string.IsNullOrWhiteSpace(loginDto.Username) || string.IsNullOrWhiteSpace(loginDto.Password))
             {
-                var jsonResponse=await responseMessage.Content.ReadAsStringAsync();
-                var tokenModel=JsonConvert.DeserializeObject<TokenResponseDto>(jsonResponse);
-                HttpContext.Session.SetString("JwtToken", tokenModel.Token);
-                HttpContext.Session.SetString("PackageName", tokenModel.PackageName);
-                HttpContext.Session.SetInt32("PackageLevel", tokenModel.PackageLevel);
-                HttpContext.Session.SetString("IsAdmin", tokenModel.IsAdmin.ToString());
-
-                return RedirectToAction("ArtistListV2", "Artist");
+                ViewBag.ErrorMessage = "Kullanıcı adı veya e-posta ile şifreni girmelisin.";
+                return View(loginDto);
             }
-            ViewBag.ErrorMessage = "Yanlış kullanıcı adı veya şifre.";
-            return View();
+
+            loginDto.Username = loginDto.Username.Trim();
+
+            try
+            {
+                var client = _httpClientFactory.CreateClient();
+                var jsonData = JsonConvert.SerializeObject(loginDto);
+                var stringContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
+                var responseMessage = await client.PostAsync("http://localhost:5253/api/Login", stringContent);
+
+                if (responseMessage.IsSuccessStatusCode)
+                {
+                    var jsonResponse = await responseMessage.Content.ReadAsStringAsync();
+                    var tokenModel = JsonConvert.DeserializeObject<TokenResponseDto>(jsonResponse);
+                    if (tokenModel == null || string.IsNullOrWhiteSpace(tokenModel.Token))
+                    {
+                        ViewBag.ErrorMessage = "Giriş yanıtı alınamadı. Lütfen tekrar dene.";
+                        return View(loginDto);
+                    }
+
+                    HttpContext.Session.SetString("JwtToken", tokenModel.Token);
+                    HttpContext.Session.SetString("PackageName", tokenModel.PackageName);
+                    HttpContext.Session.SetInt32("PackageLevel", tokenModel.PackageLevel);
+                    HttpContext.Session.SetString("IsAdmin", tokenModel.IsAdmin.ToString());
+
+                    return RedirectToAction("ArtistListV2", "Artist");
+                }
+
+                if (responseMessage.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    ViewBag.ErrorMessage = "Kullanıcı adı/e-posta veya şifre eşleşmiyor.";
+                }
+                else
+                {
+                    var errorBody = await responseMessage.Content.ReadAsStringAsync();
+                    ViewBag.ErrorMessage = $"Giriş servisi hata verdi ({(int)responseMessage.StatusCode}). " +
+                        (string.IsNullOrWhiteSpace(errorBody) ? "Lütfen tekrar dene." : errorBody);
+                }
+            }
+            catch (HttpRequestException)
+            {
+                ViewBag.ErrorMessage = "Web API'ye bağlanılamadı. WebApi projesinin çalıştığından emin ol.";
+            }
+
+            return View(loginDto);
         }
 
         [HttpGet]

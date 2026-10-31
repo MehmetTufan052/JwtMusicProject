@@ -86,10 +86,15 @@ namespace JwtMusicNight.WebApi.Services.SongServices
 
         public async Task<List<ListeningHistoryDto>> GetHistoryAsync(string appUserId, int count = 50)
         {
+            var latestHistoryIds = _context.ListeningHistories
+                .Where(h => h.AppUserId == appUserId)
+                .GroupBy(h => h.SongId)
+                .Select(group => group.Max(h => h.ListeningHistoryId));
+
             var history = await _context.ListeningHistories
                 .Include(h => h.Song).ThenInclude(s => s.Artist)
                 .Include(h => h.Song).ThenInclude(s => s.Package)
-                .Where(h => h.AppUserId == appUserId)
+                .Where(h => latestHistoryIds.Contains(h.ListeningHistoryId))
                 .OrderByDescending(h => h.ListenDate)
                 .Take(count)
                 .ToListAsync();

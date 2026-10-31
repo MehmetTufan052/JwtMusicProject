@@ -1,4 +1,4 @@
-﻿using JwtMusicNight.WebUI.Dtos;
+using JwtMusicNight.WebUI.Dtos;
 using JwtMusicNight.WebUI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -28,7 +28,7 @@ namespace JwtMusicNight.WebUI.Controllers
             var client = _httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await client.GetAsync("https://localhost:7292/api/Song");
+            var response = await client.GetAsync("http://localhost:5253/api/Song");
 
             if (!response.IsSuccessStatusCode)
             {
@@ -38,7 +38,7 @@ namespace JwtMusicNight.WebUI.Controllers
             var json = await response.Content.ReadAsStringAsync();
             var songs = JsonConvert.DeserializeObject<List<ResultSongDto>>(json);
 
-            var favoritesJson = await client.GetStringAsync("https://localhost:7292/api/Song/favorites");
+            var favoritesJson = await client.GetStringAsync("http://localhost:5253/api/Song/favorites");
             var favorites = JsonConvert.DeserializeObject<List<ResultSongDto>>(favoritesJson) ?? new();
 
             ViewBag.PackageName = HttpContext.Session.GetString("PackageName") ?? "Basic";
@@ -62,12 +62,31 @@ namespace JwtMusicNight.WebUI.Controllers
             var client = _httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await client.PostAsync("https://localhost:7292/api/Song/listen/" + id, null);
+            var response = await client.PostAsync("http://localhost:5253/api/Song/listen/" + id, null);
             var body = await response.Content.ReadAsStringAsync();
 
             if (response.IsSuccessStatusCode)
             {
                 var json = Newtonsoft.Json.Linq.JObject.Parse(body);
+
+                var coverImageUrl = json.Value<string>("coverImageUrl");
+                if (string.IsNullOrWhiteSpace(coverImageUrl))
+                {
+                    var detailResponse = await client.GetAsync($"http://localhost:5253/api/Song/{id}");
+                    if (detailResponse.IsSuccessStatusCode)
+                    {
+                        var detailBody = await detailResponse.Content.ReadAsStringAsync();
+                        coverImageUrl = JObject.Parse(detailBody).Value<string>("coverImageUrl");
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(coverImageUrl))
+                {
+                    json["coverImageUrl"] = coverImageUrl.StartsWith("~/")
+                        ? coverImageUrl.Substring(1)
+                        : coverImageUrl;
+                }
+
                 json["audioUrl"] = Url.Action(nameof(Stream), "Song", new { id });
                 body = json.ToString(Newtonsoft.Json.Formatting.None);
             }
@@ -92,7 +111,7 @@ namespace JwtMusicNight.WebUI.Controllers
             var client = _httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await client.GetAsync("https://localhost:7292/api/Song/stream/" + id);
+            var response = await client.GetAsync("http://localhost:5253/api/Song/stream/" + id);
             if (!response.IsSuccessStatusCode)
             {
                 return StatusCode((int)response.StatusCode);
@@ -111,13 +130,13 @@ namespace JwtMusicNight.WebUI.Controllers
             var client = _httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var songResponse = await client.GetAsync($"https://localhost:7292/api/Song/{id}");
+            var songResponse = await client.GetAsync($"http://localhost:5253/api/Song/{id}");
             if (!songResponse.IsSuccessStatusCode)
                 return RedirectToAction("Charts");
 
             var songJson = await songResponse.Content.ReadAsStringAsync();
-            var recommendationsJson = await client.GetStringAsync($"https://localhost:7292/api/Song/{id}/recommendations");
-            var favoriteJson = await client.GetStringAsync($"https://localhost:7292/api/Song/{id}/favorite-status");
+            var recommendationsJson = await client.GetStringAsync($"http://localhost:5253/api/Song/{id}/recommendations");
+            var favoriteJson = await client.GetStringAsync($"http://localhost:5253/api/Song/{id}/favorite-status");
 
             var model = new SongDetailViewModel
             {
@@ -143,7 +162,7 @@ namespace JwtMusicNight.WebUI.Controllers
             var client = _httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await client.PostAsync($"https://localhost:7292/api/Song/favorite/{id}", null);
+            var response = await client.PostAsync($"http://localhost:5253/api/Song/favorite/{id}", null);
             var body = await response.Content.ReadAsStringAsync();
 
             return new ContentResult
@@ -163,7 +182,7 @@ namespace JwtMusicNight.WebUI.Controllers
             var client = _httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await client.GetAsync("https://localhost:7292/api/Song/favorites");
+            var response = await client.GetAsync("http://localhost:5253/api/Song/favorites");
             if (!response.IsSuccessStatusCode)
                 return RedirectToAction("SignIn", "Login");
 
@@ -186,7 +205,7 @@ namespace JwtMusicNight.WebUI.Controllers
             var client = _httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await client.GetAsync("https://localhost:7292/api/Song/history");
+            var response = await client.GetAsync("http://localhost:5253/api/Song/history");
             if (!response.IsSuccessStatusCode)
                 return RedirectToAction("SignIn", "Login");
 

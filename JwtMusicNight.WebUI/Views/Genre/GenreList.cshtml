@@ -7,7 +7,7 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <script src="/js/spa-router.js"></script>
+    <script src="/js/spa-router.js?v=20261028-playerbar"></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
@@ -193,7 +193,7 @@
         volIcon.addEventListener('click',function(){audio.muted=!audio.muted;});
         audio.addEventListener('volumechange',syncVol);
         syncVol();
-        async function listen(btn){const response=await fetch('/Song/Listen/'+btn.dataset.id,{method:'POST'});if(response.status===403){modalText.textContent=btn.dataset.name+' şarkısı '+btn.dataset.package+' paketine ait. Mevcut paketiniz bu şarkıyı desteklememektedir.';modal.classList.add('show');return;}if(response.status===401){location.href='/Login/SignIn';return;}if(!response.ok)return;const data=await response.json();document.getElementById('nowName').textContent=data.songName||btn.dataset.name;document.getElementById('nowArtist').textContent=data.artistName||btn.dataset.artist;icon.className='bi bi-pause-fill';if(window.spaSetNowPlaying){window.spaSetNowPlaying(data.songName||btn.dataset.name,data.artistName||btn.dataset.artist);}currentIndex=playlist.findIndex(p=>p.id===btn.dataset.id);if(data.audioUrl){audio.src=data.audioUrl;audio.play().catch(()=>{});}}
+        async function listen(btn){const response=await fetch('/Song/Listen/'+btn.dataset.id,{method:'POST'});if(response.status===403){modalText.textContent=btn.dataset.name+' şarkısı '+btn.dataset.package+' paketine ait. Mevcut paketiniz bu şarkıyı desteklememektedir.';modal.classList.add('show');return;}if(response.status===401){location.href='/Login/SignIn';return;}if(!response.ok)return;const data=await response.json();document.getElementById('nowName').textContent=data.songName||btn.dataset.name;document.getElementById('nowArtist').textContent=data.artistName||btn.dataset.artist;icon.className='bi bi-pause-fill';if(window.spaSetNowPlaying){window.spaSetNowPlaying(data.songName||btn.dataset.name,data.artistName||btn.dataset.artist,data.coverImageUrl,data.songId||btn.dataset.id);}currentIndex=playlist.findIndex(p=>p.id===btn.dataset.id);if(data.audioUrl){audio.src=data.audioUrl;audio.play().catch(()=>{});}}
         document.querySelectorAll('.listen').forEach(btn=>btn.addEventListener('click',()=>listen(btn))); document.getElementById('mainPlay').onclick=()=>{if(!audio.src)return;if(audio.paused){audio.play();icon.className='bi bi-pause-fill';}else{audio.pause();icon.className='bi bi-play-fill';}};
 
         var playlist=cards.map(c=>{var el=c.querySelector('.listen');return el?{id:el.dataset.id,name:el.dataset.name,artist:el.dataset.artist,pkg:el.dataset.package}:null;}).filter(Boolean);
