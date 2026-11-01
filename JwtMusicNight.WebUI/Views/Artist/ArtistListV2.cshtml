@@ -831,6 +831,27 @@
             pointer-events: none;
         }
 
+        .card-art::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 4;
+            padding: 3px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, var(--accent), var(--accent-2), var(--ok), var(--accent));
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .28s;
+        }
+
+        .card:hover .card-art::before {
+            opacity: 1;
+            animation: spinRing 3.4s linear infinite;
+        }
+
         .card:hover .card-art::after {
             box-shadow: 0 0 0 3px rgba(168,85,247,.55), 0 16px 38px rgba(0,0,0,.55);
         }
@@ -1149,26 +1170,6 @@
 
             <section class="sec reveal">
                 <div class="sec-head">
-                    <div><h2 class="sec-title">Hızlı Keşif</h2><p class="sec-description">Yeni bir sese rastlamak için seçkiden bir sanatçıyla başla.</p></div>
-                    <span class="sec-link"><i class="bi bi-stars"></i> Keşif seçkisi</span>
-                </div>
-                <div class="circle-row">
-                    @foreach (var a in Model.Take(8))
-                    {
-                        <a class="circle-card" href="/Artist/ArtistDetail/@a.ArtistId">
-                            <div class="circle-img-wrap">
-                                <img class="circle-img" src="@a.ArtistImageUrl" alt="@a.ArtistName"
-                                     onerror="this.outerHTML='<div class=\'circle-fallback\'>@(a.ArtistName.Substring(0,1))</div>'" />
-                            </div>
-                            <div class="circle-name">@a.ArtistName</div>
-                            <div class="circle-sub">@a.Country</div>
-                        </a>
-                    }
-                </div>
-            </section>
-
-            <section class="sec reveal">
-                <div class="sec-head">
                     <div><h2 class="sec-title">Sanatçı Atlası</h2><p class="sec-description">İsme veya ülkeye göre filtrele, Echoa'daki bütün sesler arasında gezin.</p></div>
                 </div>
 
@@ -1184,7 +1185,6 @@
                     @for (int i = 0; i < Model.Count; i++)
                     {
                         var a = Model[i];
-                        var bio = string.IsNullOrWhiteSpace(a.Bio) ? "Sanatçının şarkılarını ve profil detaylarını keşfet." : a.Bio;
                         <a class="card" href="/Artist/ArtistDetail/@a.ArtistId"
                            style="animation-delay:@(i * 55)ms"
                            data-name="@a.ArtistName.ToLower()" data-c="@(a.Country == null ? "" : a.Country.ToLower())">
@@ -1201,8 +1201,6 @@
                                 }
                             </div>
                             <div class="card-sub">@a.Country</div>
-                            <div class="card-bio">@bio</div>
-                            <div class="card-foot"><span><i class="bi bi-music-note-list"></i> Sanatçı profili</span><span>Keşfet <i class="bi bi-arrow-right"></i></span></div>
                         </a>
                     }
                     <div class="empty" id="empty" style="display:none">

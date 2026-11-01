@@ -57,9 +57,25 @@ namespace JwtMusicNight.WebUI.Controllers
             var json = await response.Content.ReadAsStringAsync();
             var playlist = JsonConvert.DeserializeObject<PlaylistDetailDto>(json);
 
+            var packageLevel = HttpContext.Session.GetInt32("PackageLevel") ?? 0;
+            var songsResponse = await client.GetAsync("http://localhost:5253/api/Song");
+            var availableSongs = new List<ResultSongDto>();
+            if (songsResponse.IsSuccessStatusCode)
+            {
+                var songsJson = await songsResponse.Content.ReadAsStringAsync();
+                var allSongs = JsonConvert.DeserializeObject<List<ResultSongDto>>(songsJson) ?? new();
+                var playlistSongIds = playlist?.Songs?.Select(x => x.SongId).ToHashSet() ?? new HashSet<int>();
+                availableSongs = allSongs
+                    .Where(x => x.PackageLevel <= packageLevel && !playlistSongIds.Contains(x.SongId))
+                    .OrderByDescending(x => x.ListenCount)
+                    .ThenBy(x => x.SongName)
+                    .ToList();
+            }
+
             ViewBag.PackageName = HttpContext.Session.GetString("PackageName") ?? "Basic";
             ViewBag.IsAdmin = HttpContext.Session.GetString("IsAdmin") == "True";
-            ViewBag.PackageLevel = HttpContext.Session.GetInt32("PackageLevel") ?? 0;
+            ViewBag.PackageLevel = packageLevel;
+            ViewBag.AvailableSongs = availableSongs;
 
             return View(playlist);
         }

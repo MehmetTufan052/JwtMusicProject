@@ -761,7 +761,7 @@
             </div>
             <div class="modal-acts">
                 <button class="m-ghost" id="lockClose" type="button">Kapat</button>
-                <button class="m-cta" type="button">Paketi yükselt</button>
+                <button class="m-cta" id="upgradePackageBtn" type="button">Paketi yükselt</button>
             </div>
         </div>
     </div>
@@ -821,6 +821,11 @@
         var modal = document.getElementById('lockModal');
         var lockMsg = document.getElementById('lockMsg');
         document.getElementById('lockClose').addEventListener('click', function () { modal.classList.remove('on'); });
+        document.getElementById('upgradePackageBtn').addEventListener('click', function () {
+            modal.classList.remove('on');
+            if (window.spaNavigate) { window.spaNavigate('/Package/Index'); }
+            else { window.location.href = '/Package/Index'; }
+        });
         modal.addEventListener('click', function (e) { if (e.target === modal) { modal.classList.remove('on'); } });
         document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { modal.classList.remove('on'); } });
 

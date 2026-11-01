@@ -10,7 +10,7 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <script src="/js/spa-router.js?v=20261028-playerbar"></script>
+    <script src="/js/spa-router.js?v=20261102-playback-state"></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
@@ -516,6 +516,13 @@
         .now-track { height:5px; border-radius:99px; background:rgba(255,255,255,.16); cursor:pointer; overflow:hidden; }
         .now-track-fill { width:0; height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--accent),var(--accent-2)); }
         .now-times { display:flex; justify-content:space-between; margin-top:8px; color:var(--txt-3); font-size:.76rem; font-variant-numeric:tabular-nums; }
+        .volume-control { width:100%; max-width:560px; display:flex; align-items:center; gap:11px; margin-top:15px; }
+        .volume-btn { width:32px; height:32px; display:grid; place-items:center; flex:0 0 auto; border:1px solid var(--line); border-radius:50%; background:rgba(255,255,255,.045); color:var(--txt-2); cursor:pointer; }
+        .volume-btn:hover { color:#fff; background:rgba(255,255,255,.09); }
+        .volume-range { flex:1; height:4px; appearance:none; -webkit-appearance:none; border-radius:99px; outline:none; cursor:pointer; background:linear-gradient(90deg,var(--accent) 0%,var(--accent-2) var(--volume,70%),rgba(255,255,255,.16) var(--volume,70%)); }
+        .volume-range::-webkit-slider-thumb { width:14px; height:14px; appearance:none; -webkit-appearance:none; border-radius:50%; background:#fff; border:2px solid #c084fc; box-shadow:0 2px 9px rgba(0,0,0,.45); }
+        .volume-range::-moz-range-thumb { width:11px; height:11px; border-radius:50%; background:#fff; border:2px solid #c084fc; }
+        .volume-value { min-width:35px; color:var(--txt-3); font-size:.75rem; font-variant-numeric:tabular-nums; text-align:right; }
         .now-hint { display:flex; align-items:center; gap:7px; margin-top:17px; color:var(--txt-3); font-size:.82rem; }
         .sec-title { margin-top: 46px; }
 
@@ -578,6 +585,11 @@
                     <div class="now-track" id="detailTrack"><div class="now-track-fill" id="detailTrackFill"></div></div>
                     <div class="now-times"><span id="detailCurrent">0:00</span><span id="detailDuration">@s.Duration.ToString("m\\:ss")</span></div>
                 </div>
+                <div class="volume-control">
+                    <button class="volume-btn" id="detailVolumeBtn" type="button" aria-label="Sesi kapat"><i class="bi bi-volume-up-fill" id="detailVolumeIcon"></i></button>
+                    <input class="volume-range" id="detailVolume" type="range" min="0" max="100" value="70" aria-label="Ses seviyesi" />
+                    <span class="volume-value" id="detailVolumeValue">70%</span>
+                </div>
                 <div class="now-hint"><i class="bi bi-soundwave"></i> Şimdi çalıyor görünümü</div>
             </div>
         </div>
@@ -638,7 +650,7 @@
             <p id="lockMsg">Mevcut paketiniz bu şarkıyı desteklememektedir. Lütfen paketinizi yükseltin.</p>
             <div class="modal-acts">
                 <button class="m-ghost" id="lockClose" type="button">Kapat</button>
-                <button class="m-cta" type="button">Paketi yükselt</button>
+                <button class="m-cta" id="upgradePackageBtn" type="button">Paketi yükselt</button>
             </div>
         </div>
     </div>
@@ -649,6 +661,11 @@
         var modal = document.getElementById('lockModal');
         var lockMsg = document.getElementById('lockMsg');
         document.getElementById('lockClose').addEventListener('click', function () { modal.classList.remove('on'); });
+        document.getElementById('upgradePackageBtn').addEventListener('click', function () {
+            modal.classList.remove('on');
+            if (window.spaNavigate) { window.spaNavigate('/Package/Index'); }
+            else { window.location.href = '/Package/Index'; }
+        });
         modal.addEventListener('click', function (e) { if (e.target === modal) { modal.classList.remove('on'); } });
 
         var audio = document.getElementById('audio');
@@ -663,7 +680,72 @@
         var detailTrackFill = document.getElementById('detailTrackFill');
         var detailCurrent = document.getElementById('detailCurrent');
         var detailDuration = document.getElementById('detailDuration');
+        var detailVolume = document.getElementById('detailVolume');
+        var detailVolumeBtn = document.getElementById('detailVolumeBtn');
+        var detailVolumeIcon = document.getElementById('detailVolumeIcon');
+        var detailVolumeValue = document.getElementById('detailVolumeValue');
         var playing = false;
+        var pageLocked = @locked.ToString().ToLowerInvariant();
+
+        function updateVolumeUI(value) {
+            var percent = Math.max(0, Math.min(100, Math.round(value)));
+            detailVolume.value = percent;
+            detailVolume.style.setProperty('--volume', percent + '%');
+            detailVolumeValue.textContent = percent + '%';
+            detailVolumeIcon.className = percent === 0 ? 'bi bi-volume-mute-fill' : percent < 50 ? 'bi bi-volume-down-fill' : 'bi bi-volume-up-fill';
+            detailVolumeBtn.setAttribute('aria-label', percent === 0 ? 'Sesi aç' : 'Sesi kapat');
+        }
+
+        var savedVolume = Number(localStorage.getItem('echoaVolume'));
+        if (!Number.isFinite(savedVolume)) { savedVolume = 70; }
+        audio.volume = Math.max(0, Math.min(1, savedVolume / 100));
+        audio.muted = false;
+        updateVolumeUI(savedVolume);
+
+        detailVolume.addEventListener('input', function () {
+            var percent = Number(this.value);
+            audio.muted = false;
+            audio.volume = percent / 100;
+            localStorage.setItem('echoaVolume', String(percent));
+            updateVolumeUI(percent);
+        });
+
+        detailVolumeBtn.addEventListener('click', function () {
+            if (audio.muted || audio.volume === 0) {
+                var restoreVolume = Number(localStorage.getItem('echoaVolume'));
+                if (!Number.isFinite(restoreVolume) || restoreVolume <= 0) { restoreVolume = 70; }
+                audio.muted = false;
+                audio.volume = restoreVolume / 100;
+                updateVolumeUI(restoreVolume);
+            } else {
+                localStorage.setItem('echoaVolume', String(Math.round(audio.volume * 100)));
+                audio.muted = true;
+                updateVolumeUI(0);
+            }
+        });
+
+        if (pageLocked) {
+            if (window.spaStopPlayback) {
+                window.spaStopPlayback();
+            } else {
+                audio.pause();
+                try { audio.currentTime = 0; } catch (e) { }
+                audio.removeAttribute('src');
+                audio.load();
+                sessionStorage.removeItem('echoaNowPlaying');
+            }
+            playing = false;
+            npName.textContent = 'Bir şarkı seç';
+            npSub.textContent = 'Çalan bir şey yok';
+            npArt.innerHTML = '<i class="bi bi-music-note-beamed"></i>';
+            npArt.classList.remove('spin');
+            document.querySelector('.player').onclick = null;
+            detailTrackFill.style.width = '0%';
+            detailCurrent.textContent = '0:00';
+            var lockedSongButton = document.getElementById('mainPlay');
+            lockMsg.textContent = lockedSongButton.dataset.name + ' şarkısı ' + lockedSongButton.dataset.pkg + ' paketine ait. Mevcut paketiniz bu şarkıyı desteklememektedir. Lütfen paketinizi yükseltin.';
+            modal.classList.add('on');
+        }
 
         function formatTime(seconds) {
             if (!isFinite(seconds) || seconds < 0) { seconds = 0; }
@@ -677,10 +759,35 @@
             npArt.classList.toggle('spin', on);
             plIcon.className = on ? 'bi bi-pause-fill' : 'bi bi-play-fill';
             if (detailPlayIcon && !document.getElementById('mainPlay').classList.contains('locked')) {
-                detailPlayIcon.className = on ? 'bi bi-pause-fill' : 'bi bi-play-fill';
-                detailPlayText.textContent = on ? 'Duraklat' : 'Çal';
+                var detailPlaying = on && isCurrentDetailSong();
+                detailPlayIcon.className = detailPlaying ? 'bi bi-pause-fill' : 'bi bi-play-fill';
+                detailPlayText.textContent = detailPlaying ? 'Duraklat' : 'Çal';
             }
         }
+
+        function isCurrentDetailSong() {
+            var button = document.getElementById('mainPlay');
+            var playback = window.spaGetPlaybackState ? window.spaGetPlaybackState() : null;
+            if (playback && playback.hasSource && String(playback.songId) === String(button.dataset.id)) { return true; }
+
+            return !!audio.src &&
+                npName.textContent.trim().toLocaleLowerCase('tr-TR') === button.dataset.name.trim().toLocaleLowerCase('tr-TR') &&
+                npSub.textContent.trim().toLocaleLowerCase('tr-TR') === button.dataset.artist.trim().toLocaleLowerCase('tr-TR');
+        }
+
+        function syncDetailPlaybackState() {
+            if (pageLocked || !isCurrentDetailSong()) { return; }
+            setPlaying(!audio.paused);
+            detailCurrent.textContent = formatTime(audio.currentTime);
+            if (audio.duration > 0) {
+                detailDuration.textContent = formatTime(audio.duration);
+                detailTrackFill.style.width = ((audio.currentTime / audio.duration) * 100) + '%';
+            }
+        }
+
+        syncDetailPlaybackState();
+        setTimeout(syncDetailPlaybackState, 0);
+        setTimeout(syncDetailPlaybackState, 80);
 
         audio.addEventListener('play', function () { setPlaying(true); });
         audio.addEventListener('pause', function () { setPlaying(false); });
@@ -707,15 +814,15 @@
             if (res.status === 403) {
                 lockMsg.textContent = name + ' şarkısı ' + pkg + ' paketine ait. Mevcut paketiniz bu şarkıyı desteklememektedir. Lütfen paketinizi yükseltin.';
                 modal.classList.add('on');
-                return;
+                return false;
             }
 
             if (res.status === 401) {
                 window.location.href = '/Login/SignIn';
-                return;
+                return false;
             }
 
-            if (!res.ok) { return; }
+            if (!res.ok) { return false; }
 
             var data = await res.json();
             npName.textContent = data.songName || name;
@@ -726,10 +833,17 @@
                 audio.src = data.audioUrl;
                 audio.play().catch(function () { });
                 setPlaying(true);
+                return true;
             }
+            return false;
         }
 
         document.getElementById('mainPlay').addEventListener('click', function () {
+            if (isCurrentDetailSong()) {
+                if (audio.paused) { audio.play().catch(function () { }); }
+                else { audio.pause(); }
+                return;
+            }
             requestListen(this.dataset.id, this.dataset.name, this.dataset.artist, this.dataset.pkg);
         });
 
@@ -803,10 +917,15 @@
         });
 
         document.querySelectorAll('.rec-listen').forEach(function (el) {
-            el.addEventListener('click', function (e) {
+            el.addEventListener('click', async function (e) {
                 e.preventDefault();
                 e.stopPropagation();
-                requestListen(this.dataset.id, this.dataset.name, this.dataset.artist, this.dataset.pkg);
+                var songId = this.dataset.id;
+                var started = await requestListen(songId, this.dataset.name, this.dataset.artist, this.dataset.pkg);
+                if (!started) { return; }
+                var detailUrl = '/Song/SongDetail/' + songId;
+                if (window.spaNavigate) { window.spaNavigate(detailUrl); }
+                else { window.location.href = detailUrl; }
             });
         });
 

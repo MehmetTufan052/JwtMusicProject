@@ -91,6 +91,40 @@
         syncNowPlayingUI();
     };
 
+    window.spaGetPlaybackState = function () {
+        var audio = persistentAudio || document.getElementById('audio');
+        return {
+            songId: nowPlaying.songId,
+            playing: !!(audio && audio.src && !audio.paused),
+            hasSource: !!(audio && audio.src),
+            currentTime: audio && isFinite(audio.currentTime) ? audio.currentTime : 0,
+            duration: audio && isFinite(audio.duration) ? audio.duration : 0
+        };
+    };
+
+    window.spaStopPlayback = function () {
+        var audio = persistentAudio || document.getElementById('audio');
+        if (audio) {
+            audio.pause();
+            try { audio.currentTime = 0; } catch (e) { }
+            audio.removeAttribute('src');
+            audio.load();
+        }
+
+        nowPlaying = { name: '', artist: '', coverUrl: '', songId: null };
+        sessionStorage.removeItem('echoaNowPlaying');
+
+        var nameEl = document.getElementById('npName') || document.getElementById('nowName');
+        var artistEl = document.getElementById('npSub') || document.getElementById('nowArtist');
+        var artEl = document.getElementById('npArt') || document.querySelector('.now-art');
+        if (nameEl) { nameEl.textContent = 'Bir şarkı seç'; }
+        if (artistEl) { artistEl.textContent = 'Çalan bir şey yok'; }
+        if (nameEl) { nameEl.onclick = null; nameEl.style.cursor = ''; nameEl.removeAttribute('title'); }
+        if (artEl) { artEl.innerHTML = '<i class="bi bi-music-note-beamed"></i>'; artEl.classList.remove('spin'); artEl.onclick = null; artEl.style.cursor = ''; artEl.removeAttribute('title'); }
+        var playerBar = document.querySelector('.player');
+        if (playerBar) { playerBar.onclick = null; playerBar.style.cursor = ''; playerBar.removeAttribute('title'); }
+    };
+
     function ensurePersistentAudio() {
         var placeholder = document.getElementById('audio');
         if (!persistentAudio) {

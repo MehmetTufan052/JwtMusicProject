@@ -32,7 +32,7 @@
 <body>
 <div class="shell">
     <main class="main">
-        <header class="topbar"><a class="back" href="/Home/Index"><i class="bi bi-chevron-left"></i>Geri dön</a><span class="spacer"></span><span class="current-pill"><i class="bi bi-gem"></i>Mevcut: @currentPackage</span></header>
+        <header class="topbar"><a class="back" id="packageBack" data-no-route href="/Home/Index"><i class="bi bi-chevron-left"></i>Geri dön</a><span class="spacer"></span><span class="current-pill"><i class="bi bi-gem"></i>Mevcut: @currentPackage</span></header>
         <section class="hero"><span class="eyebrow"><i class="bi bi-stars"></i>Echoa üyelikleri</span><h1>Ritmini bir üst <span>seviyeye taşı.</span></h1><p>Dinleme alışkanlığına uygun paketi keşfet. Bu ekran yalnızca paket avantajlarını karşılaştırmak ve yükseltme seçeneklerini tanıtmak içindir.</p></section>
         <section class="plans">
             <article class="plan"><span class="plan-icon"><i class="bi bi-music-note"></i></span><h2>Free</h2><p class="plan-copy">Müziği keşfetmeye başlamak için.</p><div class="price">Ücretsiz</div><ul class="features"><li><i class="bi bi-check2"></i>Reklam destekli dinleme</li><li><i class="bi bi-check2"></i>Standart ses kalitesi</li><li><i class="bi bi-check2"></i>Temel müzik keşfi</li></ul><button class="plan-action @(IsCurrent("Free") ? "current" : "")" data-package="Free" @(IsCurrent("Free") ? "disabled" : "")>@(IsCurrent("Free") ? "Mevcut paket" : "Paketi incele")</button></article>
@@ -44,7 +44,13 @@
     </main>
 </div>
 <div class="toast" id="toast"><i class="bi bi-stars"></i><div><strong id="toastTitle"></strong><span>Gerçek paket değiştirme işlemi henüz aktif değil. Paket avantajlarını karşılaştırmaya devam edebilirsin.</span></div></div>
+<audio id="audio" hidden></audio>
 <script>
+document.getElementById('packageBack').addEventListener('click',function(event){
+    if(history.length<=1){return;}
+    event.preventDefault();
+    history.back();
+});
 document.querySelectorAll('.plan-action:not([disabled])').forEach(function(button){button.addEventListener('click',function(){var toast=document.getElementById('toast');document.getElementById('toastTitle').textContent=button.dataset.package+' yükseltme seçeneği';toast.classList.add('show');clearTimeout(window.packageToastTimer);window.packageToastTimer=setTimeout(function(){toast.classList.remove('show')},4200)})});
 </script>
 </body>
