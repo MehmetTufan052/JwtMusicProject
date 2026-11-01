@@ -196,6 +196,7 @@
         var href = a.getAttribute('href');
         if (!href || href.charAt(0) !== '/') return false;
         if (href.indexOf('//') === 0) return false;
+        if (href.toLowerCase().indexOf('/login/logout') === 0) return false;
         return true;
     }
 

@@ -574,7 +574,7 @@
                         {
                             <a class="user-dropdown-admin" href="/Admin/Index"><i class="bi bi-gear"></i>Admin Paneli</a>
                         }
-                        <a class="user-dropdown-logout" href="/Login/Logout"><i class="bi bi-box-arrow-right"></i>Çıkış yap</a>
+                        <a class="user-dropdown-logout" data-no-route href="/Login/Logout"><i class="bi bi-box-arrow-right"></i>Çıkış yap</a>
                     </div>
                 </div>
             </div>
@@ -606,7 +606,7 @@
                         {
                             var featured = ranked[i];
                             var featuredLocked = userLevel < featured.PackageLevel;
-                            <a class="song-card @(featuredLocked ? "locked" : "")" href="/Song/SongDetail/@featured.SongId" style="animation-delay:@(i * 55)ms">
+                            <a class="song-card @(featuredLocked ? "locked" : "")" href="/Song/SongDetail/@featured.SongId" data-name="@featured.SongName" data-pkg="@featured.PackageName" style="animation-delay:@(i * 55)ms">
                                 <div class="card-art">
                                     @if (!string.IsNullOrWhiteSpace(featured.CoverImageUrl))
                                     {
@@ -970,6 +970,15 @@
             });
         });
 
+        document.querySelectorAll('.song-card.locked').forEach(function (card) {
+            card.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                lockMsg.textContent = this.dataset.name + ' şarkısı ' + this.dataset.pkg + ' paketine ait. Çalan şarkın devam ederken paket seçeneklerini inceleyebilirsin.';
+                modal.classList.add('on');
+            });
+        });
+
         document.querySelectorAll('.fav-icon').forEach(function (el) {
             el.addEventListener('click', async function (e) {
                 e.preventDefault();
@@ -1039,6 +1048,12 @@
         document.querySelectorAll('.trow').forEach(function (row) {
             row.addEventListener('click', function (e) {
                 if (e.target.closest('.listen') || e.target.closest('.fav-icon') || e.target.closest('.add-icon')) { return; }
+                if (this.classList.contains('locked')) {
+                    var lockedButton = this.querySelector('.listen');
+                    lockMsg.textContent = lockedButton.dataset.name + ' şarkısı ' + lockedButton.dataset.pkg + ' paketine ait. Çalan şarkın devam ederken paket seçeneklerini inceleyebilirsin.';
+                    modal.classList.add('on');
+                    return;
+                }
                 if (window.spaNavigate) { window.spaNavigate(this.dataset.href); }
                 else { window.location.href = this.dataset.href; }
             });
