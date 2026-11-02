@@ -35,7 +35,7 @@
 
 <h3 align="center">Ana Sayfa</h3>
 <p align="center">
-  <img src="ANA_SAYFA_GORSEL_LINKI" alt="Echoa ana sayfa" width="100%" />
+  <img src="https://github.com/user-attachments/assets/b163d4ef-a812-460e-8d28-86ba93945271" alt="Echoa ana sayfa" width="100%" />
 </p>
 
 <table>
@@ -44,22 +44,22 @@
     <td width="50%" align="center"><strong>Sanatçılar</strong></td>
   </tr>
   <tr>
-    <td><img src="SARKILAR_GORSEL_LINKI" alt="Echoa şarkılar sayfası" width="100%" /></td>
-    <td><img src="SANATCILAR_GORSEL_LINKI" alt="Echoa sanatçılar sayfası" width="100%" /></td>
+    <td><img src="https://github.com/user-attachments/assets/08153e45-3303-4071-ba7a-08542f354ccd" alt="Echoa şarkılar sayfası" width="100%" /></td>
+    <td><img src="https://github.com/user-attachments/assets/747569f6-2098-491c-be67-7e8f49c90661" alt="Echoa sanatçılar sayfası" width="100%" /></td>
   </tr>
   <tr>
     <td width="50%" align="center"><strong>Çalma Listesi</strong></td>
     <td width="50%" align="center"><strong>Admin Paneli</strong></td>
   </tr>
   <tr>
-    <td><img src="CALMA_LISTESI_GORSEL_LINKI" alt="Echoa çalma listesi sayfası" width="100%" /></td>
-    <td><img src="ADMIN_PANELI_GORSEL_LINKI" alt="Echoa admin paneli" width="100%" /></td>
+    <td><img src="https://github.com/user-attachments/assets/6466a04b-f33d-4561-8f34-8c3e17cb619f" alt="Echoa çalma listesi sayfası" width="100%" /></td>
+    <td><img src="https://github.com/user-attachments/assets/62894de2-f232-4de9-b859-4e4cd06ffb88" alt="Echoa admin paneli" width="100%" /></td>
   </tr>
 </table>
 
 <h3 align="center">Giriş Ekranı</h3>
 <p align="center">
-  <img src="GIRIS_EKRANI_GORSEL_LINKI" alt="Echoa giriş ekranı" width="100%" />
+  <img src="https://github.com/user-attachments/assets/eac45839-5df2-48d2-89ab-4b3abf2e533e" alt="Echoa giriş ekranı" width="100%" />
 </p>
 
 <hr />
