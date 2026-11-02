@@ -23,7 +23,7 @@ var jwtKey = builder.Configuration["JwtSettings:Key"]
         "JwtSettings:Key bulunamadı. WebApi projesi için User Secrets değerini tanımlayın.");
 
 builder.Services.AddIdentity<AppUser, IdentityRole>().AddEntityFrameworkStores<JwtContext>().AddDefaultTokenProviders();
-// ✅ JWT Authentication eklendi
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
