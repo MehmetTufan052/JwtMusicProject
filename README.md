@@ -31,6 +31,39 @@
 
 <hr />
 
+<h2>🖼️ Projeden Görüntüler</h2>
+
+<h3 align="center">Ana Sayfa</h3>
+<p align="center">
+  <img src="ANA_SAYFA_GORSEL_LINKI" alt="Echoa ana sayfa" width="100%" />
+</p>
+
+<table>
+  <tr>
+    <td width="50%" align="center"><strong>Şarkılar</strong></td>
+    <td width="50%" align="center"><strong>Sanatçılar</strong></td>
+  </tr>
+  <tr>
+    <td><img src="SARKILAR_GORSEL_LINKI" alt="Echoa şarkılar sayfası" width="100%" /></td>
+    <td><img src="SANATCILAR_GORSEL_LINKI" alt="Echoa sanatçılar sayfası" width="100%" /></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><strong>Çalma Listesi</strong></td>
+    <td width="50%" align="center"><strong>Admin Paneli</strong></td>
+  </tr>
+  <tr>
+    <td><img src="CALMA_LISTESI_GORSEL_LINKI" alt="Echoa çalma listesi sayfası" width="100%" /></td>
+    <td><img src="ADMIN_PANELI_GORSEL_LINKI" alt="Echoa admin paneli" width="100%" /></td>
+  </tr>
+</table>
+
+<h3 align="center">Giriş Ekranı</h3>
+<p align="center">
+  <img src="GIRIS_EKRANI_GORSEL_LINKI" alt="Echoa giriş ekranı" width="100%" />
+</p>
+
+<hr />
+
 <h2>✨ Öne Çıkan Özellikler</h2>
 
 <table>
